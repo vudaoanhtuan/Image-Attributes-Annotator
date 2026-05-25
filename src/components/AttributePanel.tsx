@@ -1,19 +1,22 @@
-import { ATTRIBUTES } from "@/config/attributes";
+import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import SingleChoice from "./attributes/SingleChoice";
 import MultiChoice from "./attributes/MultiChoice";
 
 export default function AttributePanel() {
+  const config = useDatasetStore((s) => s.config);
   const draft = useLabelStore((s) => s.draft);
   const setSingle = useLabelStore((s) => s.setSingle);
   const toggleMulti = useLabelStore((s) => s.toggleMulti);
+
+  if (!config) return null;
 
   return (
     <div className="w-80 border-l border-neutral-200 bg-white p-4 space-y-5 overflow-y-auto">
       <h2 className="text-sm uppercase tracking-wide text-neutral-500">
         Attributes
       </h2>
-      {ATTRIBUTES.map((attr) => {
+      {config.attributes.map((attr) => {
         if (attr.type === "direction") return null;
         if (attr.type === "single") {
           return (

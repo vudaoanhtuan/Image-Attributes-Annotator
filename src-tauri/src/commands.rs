@@ -8,6 +8,7 @@ const IMAGE_EXTS: &[&str] = &["jpg", "jpeg", "png", "webp", "bmp"];
 pub struct OpenedDataset {
     images: Vec<String>,
     labeled: Vec<String>,
+    config: Option<serde_json::Value>,
 }
 
 fn images_dir(dataset: &str) -> PathBuf {
@@ -62,7 +63,19 @@ pub fn open_dataset(path: String) -> Result<OpenedDataset, String> {
 
     let labeled = collect_labeled(&labels_path);
 
-    Ok(OpenedDataset { images, labeled })
+    let config_path = Path::new(&path).join("config.json");
+    let config = match fs::read_to_string(&config_path) {
+        Ok(text) => match serde_json::from_str::<serde_json::Value>(&text) {
+            Ok(v) => Some(v),
+            Err(e) => {
+                eprintln!("config.json parse error: {e}");
+                None
+            }
+        },
+        Err(_) => None,
+    };
+
+    Ok(OpenedDataset { images, labeled, config })
 }
 
 fn collect_labeled(labels_path: &Path) -> Vec<String> {

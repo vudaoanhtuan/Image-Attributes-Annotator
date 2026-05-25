@@ -1,7 +1,11 @@
 import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import type { Label } from "@/types/label";
 
-export type OpenedDataset = { images: string[]; labeled: string[] };
+export type OpenedDataset = {
+  images: string[];
+  labeled: string[];
+  config: unknown;
+};
 
 export const api = {
   openDataset: (path: string) =>

@@ -2,20 +2,19 @@ import { useEffect, useRef } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import { useArrowHotkeys } from "@/lib/hotkeys";
-import { ATTRIBUTES } from "@/config/attributes";
 import ImageList from "./ImageList";
 import ImageViewer from "./ImageViewer";
 import DirectionPicker from "./DirectionPicker";
 import AttributePanel from "./AttributePanel";
 import StatusBar from "./StatusBar";
 
-const directionAttr = ATTRIBUTES.find((a) => a.type === "direction");
-
 export default function Workspace({ version: _version }: { version: string }) {
   const path = useDatasetStore((s) => s.path)!;
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
   const closeDataset = useDatasetStore((s) => s.close);
+  const config = useDatasetStore((s) => s.config);
+  const directionAttr = config?.attributes.find((a) => a.type === "direction");
   const loadFor = useLabelStore((s) => s.loadFor);
   const flush = useLabelStore((s) => s.flush);
 

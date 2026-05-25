@@ -1,11 +1,14 @@
 import { create } from "zustand";
 import { api } from "@/lib/tauri";
+import { parseDatasetConfig } from "@/lib/config";
+import type { DatasetConfig } from "@/types/label";
 
 type DatasetState = {
   path: string | null;
   images: string[];
   currentIndex: number;
   labeledSet: Set<string>;
+  config: DatasetConfig | null;
   open: (path: string) => Promise<void>;
   close: () => void;
   setIndex: (i: number) => void;
@@ -23,19 +26,27 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   images: [],
   currentIndex: 0,
   labeledSet: new Set(),
+  config: null,
 
   open: async (path) => {
-    const { images, labeled } = await api.openDataset(path);
+    const { images, labeled, config } = await api.openDataset(path);
     set({
       path,
       images,
       labeledSet: new Set(labeled),
       currentIndex: 0,
+      config: parseDatasetConfig(config),
     });
   },
 
   close: () => {
-    set({ path: null, images: [], currentIndex: 0, labeledSet: new Set() });
+    set({
+      path: null,
+      images: [],
+      currentIndex: 0,
+      labeledSet: new Set(),
+      config: null,
+    });
   },
 
   setIndex: (i) => {

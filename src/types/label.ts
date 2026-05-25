@@ -16,3 +16,5 @@ export type AttributeSchema =
     };
 
 export type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
+
+export type DatasetConfig = { attributes: AttributeSchema[] };
