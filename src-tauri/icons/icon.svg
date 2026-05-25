@@ -1,0 +1,20 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Image frame with white background -->
+  <rect x="6" y="12" width="52" height="40" rx="3" fill="#ffffff" stroke="#1f2937" stroke-width="2.5"/>
+  
+  <!-- Mountain/landscape inside frame -->
+  <path d="M 10 44 L 20 30 L 28 38 L 36 24 L 54 44 Z" fill="#1f2937" opacity="0.15"/>
+  <path d="M 10 44 L 20 30 L 28 38 L 36 24 L 54 44" fill="none" stroke="#1f2937" stroke-width="2" stroke-linejoin="round"/>
+  
+  <!-- Sun/dot -->
+  <circle cx="46" cy="20" r="2.5" fill="#1f2937"/>
+  
+  <!-- Green tag (upper) -->
+  <path d="M 4 16 L 18 16 L 24 23 L 18 30 L 4 30 Z" fill="#10b981"/>
+  <circle cx="18" cy="23" r="1.8" fill="white"/>
+  
+  <!-- Blue tag (lower) -->
+  <path d="M 4 34 L 18 34 L 24 41 L 18 48 L 4 48 Z" fill="#2563eb"/>
+  <circle cx="18" cy="41" r="1.8" fill="white"/>
+</svg>
+
