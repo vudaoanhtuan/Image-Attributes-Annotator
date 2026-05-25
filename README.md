@@ -67,5 +67,6 @@ Place an app icon at `src-tauri/icons/icon.png` before bundling a release.
 ## Hotkeys
 
 - `←` / `→` — previous / next image
-- `Cmd/Ctrl + O` — open dataset (works on landing and inside a workspace; flushes pending edits before switching)
+- `Cmd/Ctrl + O` — open dataset (File → Open Dataset…). Flushes pending edits before switching.
+- `Cmd/Ctrl + W` — close dataset (File → Close Dataset). Flushes pending edits and returns to the landing screen.
 - Autosave fires 5s after the last edit, on image switch, and on window close.

@@ -37,7 +37,7 @@ function stem(name: string) {
   return i >= 0 ? name.slice(0, i) : name;
 }
 
-export default function StatusBar({ onClose }: { onClose: () => void }) {
+export default function StatusBar() {
   const path = useDatasetStore((s) => s.path);
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
@@ -65,12 +65,6 @@ export default function StatusBar({ onClose }: { onClose: () => void }) {
         <span className="truncate text-neutral-600" title={path ?? ""}>
           {path}
         </span>
-        <button
-          onClick={onClose}
-          className="text-neutral-600 hover:text-neutral-900 underline-offset-2 hover:underline"
-        >
-          Close dataset
-        </button>
       </div>
       <div className="flex items-center shrink-0 divide-x divide-neutral-300">
         {STATUS_ORDER.map((s) => (

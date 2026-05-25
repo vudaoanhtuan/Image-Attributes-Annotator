@@ -12,7 +12,6 @@ export default function Workspace({ version: _version }: { version: string }) {
   const path = useDatasetStore((s) => s.path)!;
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
-  const closeDataset = useDatasetStore((s) => s.close);
   const config = useDatasetStore((s) => s.config);
   const directionAttr = config?.attributes.find((a) => a.type === "direction");
   const loadFor = useLabelStore((s) => s.loadFor);
@@ -34,18 +33,6 @@ export default function Workspace({ version: _version }: { version: string }) {
       await loadFor(currentImage);
     })();
   }, [currentIndex, images, loadFor, flush]);
-
-  const handleClose = async () => {
-    await flush();
-    useLabelStore.setState({
-      draft: {},
-      dirty: false,
-      status: "idle",
-      boundImage: null,
-    });
-    prevImageRef.current = null;
-    closeDataset();
-  };
 
   const currentImage = images[currentIndex];
 
@@ -72,7 +59,7 @@ export default function Workspace({ version: _version }: { version: string }) {
         </div>
         <AttributePanel />
       </div>
-      <StatusBar onClose={handleClose} />
+      <StatusBar />
     </div>
   );
 }

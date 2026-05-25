@@ -6,6 +6,7 @@ import Workspace from "@/components/Workspace";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import { useOpenDatasetHotkey } from "@/lib/hotkeys";
+import { installAppMenu } from "@/lib/menu";
 
 export default function App() {
   const path = useDatasetStore((s) => s.path);
@@ -15,6 +16,7 @@ export default function App() {
 
   useEffect(() => {
     getVersion().then(setVersion).catch(() => setVersion("dev"));
+    installAppMenu().catch((e) => console.error("menu install failed", e));
   }, []);
 
   useEffect(() => {
