@@ -1,18 +1,20 @@
 import { create } from "zustand";
 import { api } from "@/lib/tauri";
 import { parseDatasetConfig } from "@/lib/config";
-import type { DatasetConfig } from "@/types/label";
+import type { DatasetConfig, Label } from "@/types/label";
 
 type DatasetState = {
   path: string | null;
   images: string[];
   currentIndex: number;
-  labeledSet: Set<string>;
+  labels: Map<string, Label>;
+  viewedSet: Set<string>;
   config: DatasetConfig | null;
   open: (path: string) => Promise<void>;
   close: () => void;
   setIndex: (i: number) => void;
-  markLabeled: (imageName: string, labeled: boolean) => void;
+  markViewed: (imageName: string) => void;
+  setLabel: (imageName: string, label: Label | null) => void;
   currentImage: () => string | null;
 };
 
@@ -25,15 +27,17 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   path: null,
   images: [],
   currentIndex: 0,
-  labeledSet: new Set(),
+  labels: new Map(),
+  viewedSet: new Set(),
   config: null,
 
   open: async (path) => {
-    const { images, labeled, config } = await api.openDataset(path);
+    const { images, labels, config } = await api.openDataset(path);
     set({
       path,
       images,
-      labeledSet: new Set(labeled),
+      labels: new Map(Object.entries(labels)),
+      viewedSet: new Set(),
       currentIndex: 0,
       config: parseDatasetConfig(config),
     });
@@ -44,7 +48,8 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       path: null,
       images: [],
       currentIndex: 0,
-      labeledSet: new Set(),
+      labels: new Map(),
+      viewedSet: new Set(),
       config: null,
     });
   },
@@ -56,12 +61,21 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
     set({ currentIndex: clamped });
   },
 
-  markLabeled: (imageName, labeled) => {
-    const s = new Set(get().labeledSet);
+  markViewed: (imageName) => {
     const key = stem(imageName);
-    if (labeled) s.add(key);
-    else s.delete(key);
-    set({ labeledSet: s });
+    const current = get().viewedSet;
+    if (current.has(key)) return;
+    const next = new Set(current);
+    next.add(key);
+    set({ viewedSet: next });
+  },
+
+  setLabel: (imageName, label) => {
+    const key = stem(imageName);
+    const next = new Map(get().labels);
+    if (label === null) next.delete(key);
+    else next.set(key, label);
+    set({ labels: next });
   },
 
   currentImage: () => {

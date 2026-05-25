@@ -1,6 +1,7 @@
 import { FixedSizeList as List } from "react-window";
 import { useEffect, useRef } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
+import { imageStatus, STATUS_BG, STATUS_LABEL } from "@/lib/status";
 
 const ROW_HEIGHT = 32;
 
@@ -13,7 +14,9 @@ export default function ImageList() {
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
   const setIndex = useDatasetStore((s) => s.setIndex);
-  const labeledSet = useDatasetStore((s) => s.labeledSet);
+  const labels = useDatasetStore((s) => s.labels);
+  const viewedSet = useDatasetStore((s) => s.viewedSet);
+  const config = useDatasetStore((s) => s.config);
   const listRef = useRef<List>(null);
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export default function ImageList() {
           {({ index, style }) => {
             const name = images[index];
             const isCurrent = index === currentIndex;
-            const isLabeled = labeledSet.has(stem(name));
+            const status = imageStatus(stem(name), viewedSet, labels, config);
             return (
               <div
                 style={style}
@@ -46,12 +49,11 @@ export default function ImageList() {
                     ? "bg-blue-100 text-blue-900"
                     : "hover:bg-neutral-100 text-neutral-800"
                 }`}
-                title={name}
+                title={`${name} — ${STATUS_LABEL[status]}`}
               >
                 <span
-                  className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
-                    isLabeled ? "bg-transparent" : "bg-amber-500"
-                  }`}
+                  className={`inline-block w-2 h-2 rounded-full shrink-0 ${STATUS_BG[status]}`}
+                  aria-label={STATUS_LABEL[status]}
                 />
                 <span className="truncate">{name}</span>
               </div>

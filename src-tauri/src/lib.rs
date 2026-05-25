@@ -8,7 +8,6 @@ pub fn run() {
             commands::open_dataset,
             commands::read_label,
             commands::write_label,
-            commands::list_labeled,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

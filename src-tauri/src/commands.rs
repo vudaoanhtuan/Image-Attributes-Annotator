@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -7,7 +8,7 @@ const IMAGE_EXTS: &[&str] = &["jpg", "jpeg", "png", "webp", "bmp"];
 #[derive(Serialize)]
 pub struct OpenedDataset {
     images: Vec<String>,
-    labeled: Vec<String>,
+    labels: HashMap<String, serde_json::Value>,
     config: Option<serde_json::Value>,
 }
 
@@ -61,7 +62,7 @@ pub fn open_dataset(path: String) -> Result<OpenedDataset, String> {
         .collect();
     images.sort();
 
-    let labeled = collect_labeled(&labels_path);
+    let labels = collect_labels(&labels_path);
 
     let config_path = Path::new(&path).join("config.json");
     let config = match fs::read_to_string(&config_path) {
@@ -75,27 +76,34 @@ pub fn open_dataset(path: String) -> Result<OpenedDataset, String> {
         Err(_) => None,
     };
 
-    Ok(OpenedDataset { images, labeled, config })
+    Ok(OpenedDataset { images, labels, config })
 }
 
-fn collect_labeled(labels_path: &Path) -> Vec<String> {
-    let mut out = Vec::new();
+fn collect_labels(labels_path: &Path) -> HashMap<String, serde_json::Value> {
+    let mut out = HashMap::new();
     if let Ok(entries) = fs::read_dir(labels_path) {
         for e in entries.flatten() {
             let p = e.path();
-            if p.is_file() && p.extension().and_then(|s| s.to_str()) == Some("json") {
-                if let Some(stem) = p.file_stem().and_then(|s| s.to_str()) {
-                    out.push(stem.to_string());
+            if !(p.is_file() && p.extension().and_then(|s| s.to_str()) == Some("json")) {
+                continue;
+            }
+            let Some(stem) = p.file_stem().and_then(|s| s.to_str()).map(|s| s.to_string()) else {
+                continue;
+            };
+            match fs::read_to_string(&p)
+                .map_err(|e| e.to_string())
+                .and_then(|t| serde_json::from_str::<serde_json::Value>(&t).map_err(|e| e.to_string()))
+            {
+                Ok(v) => {
+                    out.insert(stem, v);
+                }
+                Err(e) => {
+                    eprintln!("skip {}: {}", p.display(), e);
                 }
             }
         }
     }
     out
-}
-
-#[tauri::command]
-pub fn list_labeled(path: String) -> Result<Vec<String>, String> {
-    Ok(collect_labeled(&labels_dir(&path)))
 }
 
 #[tauri::command]

@@ -42,6 +42,7 @@ export const useLabelStore = create<LabelState>((set, get) => ({
     const path = useDatasetStore.getState().path;
     if (!path) return;
     set({ status: "idle", dirty: false, draft: {}, boundImage: imageName });
+    useDatasetStore.getState().markViewed(imageName);
     try {
       const data = await api.readLabel(path, imageName);
       // Guard: only apply if still the bound image.
@@ -103,8 +104,9 @@ export const useLabelStore = create<LabelState>((set, get) => ({
     set({ status: "saving" });
     try {
       await api.writeLabel(path, boundImage, draft);
-      const labeled = !isEmpty(draft);
-      useDatasetStore.getState().markLabeled(boundImage, labeled);
+      useDatasetStore
+        .getState()
+        .setLabel(boundImage, isEmpty(draft) ? null : draft);
       // Only clear dirty if the bound image is still the same one we saved.
       if (get().boundImage === boundImage) {
         set({ dirty: false, status: "saved" });

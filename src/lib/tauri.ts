@@ -3,7 +3,7 @@ import type { Label } from "@/types/label";
 
 export type OpenedDataset = {
   images: string[];
-  labeled: string[];
+  labels: Record<string, Label>;
   config: unknown;
 };
 

@@ -1,6 +1,13 @@
+import { useMemo } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import type { SaveStatus } from "@/types/label";
+import {
+  imageStatus,
+  STATUS_BG,
+  STATUS_LABEL,
+  type ImageStatus,
+} from "@/lib/status";
 
 const STATUS_TEXT: Record<SaveStatus, string> = {
   idle: "—",
@@ -18,12 +25,39 @@ const STATUS_COLOR: Record<SaveStatus, string> = {
   error: "text-red-600",
 };
 
+const STATUS_ORDER: ImageStatus[] = [
+  "unviewed",
+  "missing",
+  "incomplete",
+  "complete",
+];
+
+function stem(name: string) {
+  const i = name.lastIndexOf(".");
+  return i >= 0 ? name.slice(0, i) : name;
+}
+
 export default function StatusBar({ onClose }: { onClose: () => void }) {
   const path = useDatasetStore((s) => s.path);
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
-  const labeledSet = useDatasetStore((s) => s.labeledSet);
+  const labels = useDatasetStore((s) => s.labels);
+  const viewedSet = useDatasetStore((s) => s.viewedSet);
+  const config = useDatasetStore((s) => s.config);
   const status = useLabelStore((s) => s.status);
+
+  const counts = useMemo(() => {
+    const c: Record<ImageStatus, number> = {
+      unviewed: 0,
+      missing: 0,
+      incomplete: 0,
+      complete: 0,
+    };
+    for (const name of images) {
+      c[imageStatus(stem(name), viewedSet, labels, config)]++;
+    }
+    return c;
+  }, [images, viewedSet, labels, config]);
 
   return (
     <div className="h-7 px-3 flex items-center justify-between text-xs border-t border-neutral-200 bg-neutral-100">
@@ -38,12 +72,24 @@ export default function StatusBar({ onClose }: { onClose: () => void }) {
           Close dataset
         </button>
       </div>
-      <div className="flex items-center gap-4 shrink-0">
-        <span className="text-neutral-800">
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3">
+          {STATUS_ORDER.map((s) => (
+            <span
+              key={s}
+              className="flex items-center gap-1 text-neutral-700"
+              title={STATUS_LABEL[s]}
+            >
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${STATUS_BG[s]}`}
+              />
+              <span className="tabular-nums">{counts[s]}</span>
+            </span>
+          ))}
+        </div>
+        <span className="text-neutral-300">|</span>
+        <span className="text-neutral-800 tabular-nums">
           {images.length ? currentIndex + 1 : 0} / {images.length}
-        </span>
-        <span className="text-neutral-500">
-          Labeled {labeledSet.size}/{images.length}
         </span>
         <span className={STATUS_COLOR[status]}>{STATUS_TEXT[status]}</span>
       </div>
