@@ -78,7 +78,7 @@ This produces `icon.icns` / `icon.ico` / sized PNGs in `src-tauri/icons/`, which
 
 - `←` / `↑` / `Shift+Space` — previous image
 - `→` / `↓` / `Space` — next image
-- `Cmd/Ctrl + O` — open dataset (File → Open Dataset…). Flushes pending edits before switching.
+- `Cmd/Ctrl + O` — open dataset (File → Open Dataset). Flushes pending edits before switching.
 - `Cmd/Ctrl + W` — close dataset (File → Close Dataset). Flushes pending edits and returns to the landing screen.
 - **Attribute hotkeys** — the first three `single`/`multi` attributes in `config.json` (skipping direction) get keyboard shortcuts on their options. Pressing the key behaves like clicking the option. The mapped letter is shown as a small badge at the end of each option row.
   - 1st attribute: `Q W E R T Y U I O P`

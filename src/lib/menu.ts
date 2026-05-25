@@ -5,7 +5,7 @@ import { closeDataset } from "./closeDataset";
 export async function installAppMenu() {
   const openItem = await MenuItem.new({
     id: "open-dataset",
-    text: "Open Dataset…",
+    text: "Open Dataset",
     accelerator: "CmdOrCtrl+O",
     action: () => {
       void pickAndOpenDataset();
