@@ -47,7 +47,7 @@ If present, defines the attributes shown when the dataset is opened. If absent (
 ```
 
 Supported `type`s:
-- `direction` — special compass picker rendered around the image. Optional `count` (default 16) and `startDeg` (default 0).
+- `direction` — click/drag anywhere on the image to set the angle (0° = up, clockwise). The current value is shown in the attribute panel. Optional `count` snaps to `360/count` steps; optional `startDeg` offsets the snap grid. Omit `count` for fully free-form angles.
 - `single` — single-choice. `options[].value` is what's stored.
 - `multi` — multi-choice, stored as a string array.
 

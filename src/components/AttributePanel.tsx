@@ -2,12 +2,14 @@ import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import SingleChoice from "./attributes/SingleChoice";
 import MultiChoice from "./attributes/MultiChoice";
+import DirectionDisplay from "./attributes/DirectionDisplay";
 
 export default function AttributePanel() {
   const config = useDatasetStore((s) => s.config);
   const draft = useLabelStore((s) => s.draft);
   const setSingle = useLabelStore((s) => s.setSingle);
   const toggleMulti = useLabelStore((s) => s.toggleMulti);
+  const setDirection = useLabelStore((s) => s.setDirection);
 
   if (!config) return null;
 
@@ -17,7 +19,17 @@ export default function AttributePanel() {
         Attributes
       </h2>
       {config.attributes.map((attr) => {
-        if (attr.type === "direction") return null;
+        if (attr.type === "direction") {
+          const v = draft[attr.key];
+          return (
+            <DirectionDisplay
+              key={attr.key}
+              label={attr.label}
+              value={typeof v === "number" ? v : undefined}
+              onClear={() => setDirection(attr.key, undefined)}
+            />
+          );
+        }
         if (attr.type === "single") {
           return (
             <SingleChoice
