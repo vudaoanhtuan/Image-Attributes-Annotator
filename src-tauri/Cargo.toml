@@ -1,12 +1,12 @@
 [package]
-name = "bb-attribute-labeler"
+name = "image-attributes-annotator"
 version = "0.1.0"
-description = "Bounding box attribute labeler"
+description = "Image attributes annotator"
 authors = ["palexy"]
 edition = "2021"
 
 [lib]
-name = "bb_attribute_labeler_lib"
+name = "image_attributes_annotator_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

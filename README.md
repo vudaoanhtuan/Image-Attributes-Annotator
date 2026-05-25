@@ -1,6 +1,6 @@
-# BB Attribute Labeler
+# Image Attributes Annotator
 
-Desktop tool (Tauri + React) for labeling attributes on bounding-box person crops.
+Desktop tool (Tauri + React) for annotating per-image attributes — a direction (rendered as a click/drag arrow over the image) plus configurable single- and multi-choice attributes — across a folder of images.
 
 ## Dataset layout
 
@@ -22,6 +22,8 @@ A label file is a flat object, e.g.:
 ## `config.json`
 
 If present, defines the attributes shown when the dataset is opened. If absent (or invalid), the attribute panel and direction picker are hidden — the app shows only the image list and the current image.
+
+> The example below is tailored for **person crops** (e.g. bounding-box images of people from security cameras): facing direction, gender, and accessories. The schema itself is generic — replace these with whatever attributes your dataset needs.
 
 ```json
 {
@@ -62,7 +64,15 @@ npm run tauri dev
 
 Tauri prerequisites (Rust toolchain + platform deps): https://tauri.app/start/prerequisites/
 
-Place an app icon at `src-tauri/icons/icon.png` before bundling a release.
+### App icon
+
+The source icon lives at `src-tauri/icons/icon.svg`. Regenerate the platform-specific icons from it with:
+
+```bash
+npm run tauri icon src-tauri/icons/icon.svg
+```
+
+This produces `icon.icns` / `icon.ico` / sized PNGs in `src-tauri/icons/`, which `tauri.conf.json` references for bundling.
 
 ## Hotkeys
 
