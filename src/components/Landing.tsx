@@ -1,19 +1,15 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { useState } from "react";
-import { useDatasetStore } from "@/store/datasetStore";
+import { pickAndOpenDataset } from "@/lib/openDataset";
 
 export default function Landing({ version }: { version: string }) {
-  const openDataset = useDatasetStore((s) => s.open);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleOpen = async () => {
     setError(null);
-    const selected = await open({ directory: true, multiple: false });
-    if (!selected || typeof selected !== "string") return;
     setBusy(true);
     try {
-      await openDataset(selected);
+      await pickAndOpenDataset();
     } catch (e) {
       setError(String(e));
     } finally {

@@ -1,5 +1,19 @@
 import { useEffect } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
+import { pickAndOpenDataset } from "./openDataset";
+
+export function useOpenDatasetHotkey() {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        void pickAndOpenDataset();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+}
 
 export function useArrowHotkeys() {
   useEffect(() => {

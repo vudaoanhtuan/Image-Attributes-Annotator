@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { useLabelStore } from "@/store/labelStore";
 import ImageViewer from "./ImageViewer";
 
@@ -70,11 +71,41 @@ export default function DirectionPicker({
     arrowEnd = { x: cx + dx * k, y: cy + dy * k };
   }
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const parent = wrapperRef.current?.parentElement;
+    if (!parent) return;
+    const update = () => {
+      const w = parent.clientWidth;
+      const h = parent.clientHeight;
+      if (w === 0 || h === 0) return;
+      setScale(Math.min(1, w / STAGE, h / STAGE));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(parent);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="relative" style={{ width: STAGE, height: STAGE }}>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <ImageViewer datasetPath={datasetPath} imageName={imageName} />
-      </div>
+    <div
+      ref={wrapperRef}
+      style={{ width: STAGE * scale, height: STAGE * scale }}
+    >
+      <div
+        className="relative"
+        style={{
+          width: STAGE,
+          height: STAGE,
+          transform: `scale(${scale})`,
+          transformOrigin: "0 0",
+        }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
+          <ImageViewer datasetPath={datasetPath} imageName={imageName} />
+        </div>
       {arrowEnd && (
         <svg
           className="absolute inset-0 pointer-events-none"
@@ -132,6 +163,7 @@ export default function DirectionPicker({
           />
         );
       })}
+      </div>
     </div>
   );
 }

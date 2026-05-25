@@ -5,10 +5,13 @@ import Landing from "@/components/Landing";
 import Workspace from "@/components/Workspace";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
+import { useOpenDatasetHotkey } from "@/lib/hotkeys";
 
 export default function App() {
   const path = useDatasetStore((s) => s.path);
   const [version, setVersion] = useState("");
+
+  useOpenDatasetHotkey();
 
   useEffect(() => {
     getVersion().then(setVersion).catch(() => setVersion("dev"));
