@@ -3,4 +3,16 @@
 @tailwind utilities;
 
 html, body, #root { height: 100%; }
+html, body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 body { user-select: none; }
+
+/* Inner scrollable areas don't propagate bounce to the document. */
+.overflow-y-auto,
+.overflow-y-scroll,
+.overflow-auto,
+.overflow-scroll {
+  overscroll-behavior: contain;
+}
