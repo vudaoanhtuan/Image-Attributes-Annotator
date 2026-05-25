@@ -72,26 +72,25 @@ export default function StatusBar({ onClose }: { onClose: () => void }) {
           Close dataset
         </button>
       </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="flex items-center gap-3">
-          {STATUS_ORDER.map((s) => (
+      <div className="flex items-center shrink-0 divide-x divide-neutral-300">
+        {STATUS_ORDER.map((s) => (
+          <span
+            key={s}
+            className="flex items-center gap-1 px-3 text-neutral-700"
+            title={STATUS_LABEL[s]}
+          >
             <span
-              key={s}
-              className="flex items-center gap-1 text-neutral-700"
-              title={STATUS_LABEL[s]}
-            >
-              <span
-                className={`inline-block w-2 h-2 rounded-full ${STATUS_BG[s]}`}
-              />
-              <span className="tabular-nums">{counts[s]}</span>
-            </span>
-          ))}
-        </div>
-        <span className="text-neutral-300">|</span>
-        <span className="text-neutral-800 tabular-nums">
+              className={`inline-block w-2 h-2 rounded-full ${STATUS_BG[s]}`}
+            />
+            <span className="tabular-nums text-right w-10">{counts[s]}</span>
+          </span>
+        ))}
+        <span className="px-3 text-neutral-800 tabular-nums text-right w-[7.5rem]">
           {images.length ? currentIndex + 1 : 0} / {images.length}
         </span>
-        <span className={STATUS_COLOR[status]}>{STATUS_TEXT[status]}</span>
+        <span className={`px-3 w-24 text-right ${STATUS_COLOR[status]}`}>
+          {STATUS_TEXT[status]}
+        </span>
       </div>
     </div>
   );
