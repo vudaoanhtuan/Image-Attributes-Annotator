@@ -17,7 +17,7 @@ A label file is a flat object, e.g.:
 { "facing": 45, "gender": "male", "accessories": ["hat", "bag"] }
 ```
 
-`facing` is stored as an angle in degrees (0° = up, clockwise).
+`facing` is stored as an angle in degrees in the range `[-180, 180)`: 0° points right (+x axis), angles increase **clockwise** (90° = down, -90° = up, ±180° = left).
 
 ## `config.json`
 
@@ -47,7 +47,7 @@ If present, defines the attributes shown when the dataset is opened. If absent (
 ```
 
 Supported `type`s:
-- `direction` — click/drag anywhere on the image to set the angle (0° = up, clockwise). The current value is shown in the attribute panel. Optional `count` snaps to `360/count` steps; optional `startDeg` offsets the snap grid. Omit `count` for fully free-form angles.
+- `direction` — click/drag anywhere on the image to set the angle in degrees, range `[-180, 180)`. 0° = right, increasing **clockwise** (90° = down, -90° = up). The current value is shown in the attribute panel. Optional `count` snaps to `360/count` steps; optional `startDeg` offsets the snap grid. Omit `count` for fully free-form angles.
 - `single` — single-choice. `options[].value` is what's stored.
 - `multi` — multi-choice, stored as a string array.
 

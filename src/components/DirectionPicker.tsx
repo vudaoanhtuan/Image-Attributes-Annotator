@@ -7,7 +7,8 @@ const ARROW_LEN = 280;
 const DEAD_ZONE = 8;
 
 function norm(deg: number) {
-  return ((deg % 360) + 360) % 360;
+  // Normalize to [-180, 180)
+  return ((((deg + 180) % 360) + 360) % 360) - 180;
 }
 
 function round1(n: number) {
@@ -63,8 +64,8 @@ export default function DirectionPicker({
     value === undefined
       ? null
       : {
-          x: cx + ARROW_LEN * Math.sin((value * Math.PI) / 180),
-          y: cy - ARROW_LEN * Math.cos((value * Math.PI) / 180),
+          x: cx + ARROW_LEN * Math.cos((value * Math.PI) / 180),
+          y: cy + ARROW_LEN * Math.sin((value * Math.PI) / 180),
         };
 
   const angleFromEvent = (e: React.PointerEvent<HTMLDivElement>): number | null => {
@@ -74,7 +75,7 @@ export default function DirectionPicker({
     const dx = e.clientX - (rect.left + rect.width / 2);
     const dy = e.clientY - (rect.top + rect.height / 2);
     if (Math.hypot(dx, dy) < DEAD_ZONE * scale) return null;
-    let deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+    let deg = (Math.atan2(dy, dx) * 180) / Math.PI;
     deg = norm(deg);
     if (count && count > 0) deg = snap(deg, count, startDeg);
     return round1(deg);
