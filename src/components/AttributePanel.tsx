@@ -1,5 +1,6 @@
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
+import { hotkeyFor, KEY_ROWS } from "@/lib/attrHotkeys";
 import SingleChoice from "./attributes/SingleChoice";
 import MultiChoice from "./attributes/MultiChoice";
 import DirectionDisplay from "./attributes/DirectionDisplay";
@@ -12,6 +13,8 @@ export default function AttributePanel() {
   const setDirection = useLabelStore((s) => s.setDirection);
 
   if (!config) return null;
+
+  let slot = 0;
 
   return (
     <div className="w-80 border-l border-neutral-200 bg-white p-4 space-y-5 overflow-y-auto">
@@ -30,12 +33,18 @@ export default function AttributePanel() {
             />
           );
         }
+        const currentSlot = slot < KEY_ROWS.length ? slot : -1;
+        slot++;
+        const hotkeys = attr.options.map((_, i) =>
+          currentSlot >= 0 ? hotkeyFor(currentSlot, i) : null
+        );
         if (attr.type === "single") {
           return (
             <SingleChoice
               key={attr.key}
               label={attr.label}
               options={attr.options}
+              hotkeys={hotkeys}
               value={draft[attr.key] as string | undefined}
               onChange={(v) => setSingle(attr.key, v)}
             />
@@ -46,6 +55,7 @@ export default function AttributePanel() {
             key={attr.key}
             label={attr.label}
             options={attr.options}
+            hotkeys={hotkeys}
             value={(draft[attr.key] as string[] | undefined) ?? []}
             onToggle={(v) => toggleMulti(attr.key, v)}
           />

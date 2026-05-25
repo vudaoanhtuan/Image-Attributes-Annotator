@@ -5,7 +5,7 @@ import Landing from "@/components/Landing";
 import Workspace from "@/components/Workspace";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
-import { useOpenDatasetHotkey } from "@/lib/hotkeys";
+import { useOpenDatasetHotkey, useAttributeHotkeys } from "@/lib/hotkeys";
 import { installAppMenu } from "@/lib/menu";
 
 export default function App() {
@@ -13,6 +13,7 @@ export default function App() {
   const [version, setVersion] = useState("");
 
   useOpenDatasetHotkey();
+  useAttributeHotkeys();
 
   useEffect(() => {
     getVersion().then(setVersion).catch(() => setVersion("dev"));

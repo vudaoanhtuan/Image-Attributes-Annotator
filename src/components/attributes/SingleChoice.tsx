@@ -3,11 +3,13 @@ import type { AttributeOption } from "@/types/label";
 export default function SingleChoice({
   label,
   options,
+  hotkeys,
   value,
   onChange,
 }: {
   label: string;
   options: AttributeOption[];
+  hotkeys?: (string | null)[];
   value: string | undefined;
   onChange: (v: string | undefined) => void;
 }) {
@@ -15,8 +17,9 @@ export default function SingleChoice({
     <div className="space-y-2">
       <div className="text-sm font-medium text-neutral-700">{label}</div>
       <div className="flex flex-col gap-1.5">
-        {options.map((opt) => {
+        {options.map((opt, i) => {
           const selected = value === opt.value;
+          const key = hotkeys?.[i] ?? null;
           return (
             <button
               key={opt.value}
@@ -40,7 +43,12 @@ export default function SingleChoice({
                   <span className="block w-1.5 h-1.5 rounded-full bg-white" />
                 )}
               </span>
-              <span>{opt.label}</span>
+              <span className="flex-1">{opt.label}</span>
+              {key && (
+                <kbd className="ml-auto inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-300 bg-neutral-50 text-[10px] font-mono text-neutral-600">
+                  {key}
+                </kbd>
+              )}
             </button>
           );
         })}

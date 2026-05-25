@@ -66,7 +66,12 @@ Place an app icon at `src-tauri/icons/icon.png` before bundling a release.
 
 ## Hotkeys
 
-- `←` / `→` — previous / next image
+- `←` / `↑` / `Shift+Space` — previous image
+- `→` / `↓` / `Space` — next image
 - `Cmd/Ctrl + O` — open dataset (File → Open Dataset…). Flushes pending edits before switching.
 - `Cmd/Ctrl + W` — close dataset (File → Close Dataset). Flushes pending edits and returns to the landing screen.
+- **Attribute hotkeys** — the first three `single`/`multi` attributes in `config.json` (skipping direction) get keyboard shortcuts on their options. Pressing the key behaves like clicking the option. The mapped letter is shown as a small badge at the end of each option row.
+  - 1st attribute: `Q W E R T Y U I O P`
+  - 2nd attribute: `A S D F G H J K L`
+  - 3rd attribute: `Z X C V B N M`
 - Autosave fires 5s after the last edit, on image switch, and on window close.
