@@ -17,10 +17,11 @@ export default function AttributePanel() {
   let slot = 0;
 
   return (
-    <div className="w-80 border-l border-neutral-200 bg-white p-4 space-y-5 overflow-y-auto">
-      <h2 className="text-sm uppercase tracking-wide text-neutral-500">
+    <div className="w-80 border-l border-neutral-200 bg-white flex flex-col overflow-hidden">
+      <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Attributes
-      </h2>
+      </div>
+      <div className="flex-1 p-4 space-y-5 overflow-y-auto">
       {config.attributes.map((attr) => {
         if (attr.type === "direction") {
           const v = draft[attr.key];
@@ -61,6 +62,7 @@ export default function AttributePanel() {
           />
         );
       })}
+      </div>
     </div>
   );
 }
