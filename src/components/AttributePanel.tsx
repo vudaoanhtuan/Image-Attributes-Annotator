@@ -14,6 +14,7 @@ export default function AttributePanel() {
         Attributes
       </h2>
       {ATTRIBUTES.map((attr) => {
+        if (attr.type === "direction") return null;
         if (attr.type === "single") {
           return (
             <SingleChoice

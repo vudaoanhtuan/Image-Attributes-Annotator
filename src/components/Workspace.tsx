@@ -2,10 +2,14 @@ import { useEffect, useRef } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import { useArrowHotkeys } from "@/lib/hotkeys";
+import { ATTRIBUTES } from "@/config/attributes";
 import ImageList from "./ImageList";
+import ImageViewer from "./ImageViewer";
 import DirectionPicker from "./DirectionPicker";
 import AttributePanel from "./AttributePanel";
 import StatusBar from "./StatusBar";
+
+const directionAttr = ATTRIBUTES.find((a) => a.type === "direction");
 
 export default function Workspace({ version: _version }: { version: string }) {
   const path = useDatasetStore((s) => s.path)!;
@@ -52,7 +56,17 @@ export default function Workspace({ version: _version }: { version: string }) {
         <ImageList />
         <div className="flex-1 flex items-center justify-center min-w-0 p-6">
           {currentImage ? (
-            <DirectionPicker datasetPath={path} imageName={currentImage} />
+            directionAttr && directionAttr.type === "direction" ? (
+              <DirectionPicker
+                datasetPath={path}
+                imageName={currentImage}
+                attrKey={directionAttr.key}
+                count={directionAttr.count}
+                startDeg={directionAttr.startDeg}
+              />
+            ) : (
+              <ImageViewer datasetPath={path} imageName={currentImage} />
+            )
           ) : (
             <div className="text-neutral-500">No images in dataset.</div>
           )}

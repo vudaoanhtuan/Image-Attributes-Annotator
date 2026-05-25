@@ -2,6 +2,13 @@ import type { AttributeSchema } from "@/types/label";
 
 export const ATTRIBUTES: AttributeSchema[] = [
   {
+    key: "facing",
+    label: "Facing",
+    type: "direction",
+    count: 8,
+    startDeg: 0,
+  },
+  {
     key: "gender",
     label: "Gender",
     type: "single",

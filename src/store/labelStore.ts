@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { api } from "@/lib/tauri";
-import type { Direction, Label, SaveStatus } from "@/types/label";
-import { FACING_KEY } from "@/types/label";
+import type { Label, SaveStatus } from "@/types/label";
 import { useDatasetStore } from "./datasetStore";
 
 const AUTOSAVE_MS = 5000;
@@ -13,7 +12,7 @@ type LabelState = {
   // The image the draft belongs to. Used to ensure flushes save under the correct name.
   boundImage: string | null;
   loadFor: (imageName: string) => Promise<void>;
-  setFacing: (dir: Direction | undefined) => void;
+  setDirection: (key: string, value: number | undefined) => void;
   setSingle: (key: string, value: string | undefined) => void;
   toggleMulti: (key: string, value: string) => void;
   flush: () => Promise<void>;
@@ -54,10 +53,10 @@ export const useLabelStore = create<LabelState>((set, get) => ({
     }
   },
 
-  setFacing: (dir) => {
+  setDirection: (key, value) => {
     const draft = { ...get().draft };
-    if (dir) draft[FACING_KEY] = dir;
-    else delete draft[FACING_KEY];
+    if (value === undefined) delete draft[key];
+    else draft[key] = value;
     set({ draft, dirty: true, status: "dirty" });
     get().scheduleSave();
   },
