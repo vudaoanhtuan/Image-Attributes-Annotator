@@ -100,7 +100,11 @@ export default function ImageFilters() {
   };
 
   return (
-    <div className="px-3 py-2 border-b border-neutral-200 flex flex-col gap-2">
+    <div className="flex flex-col border-b border-neutral-200">
+      <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
+        Filters
+      </div>
+      <div className="px-3 py-2 flex flex-col gap-2">
       <input
         type="text"
         value={query}
@@ -193,6 +197,7 @@ export default function ImageFilters() {
         >
           Reset
         </button>
+      </div>
       </div>
     </div>
   );

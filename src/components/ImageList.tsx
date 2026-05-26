@@ -41,10 +41,10 @@ export default function ImageList() {
 
   return (
     <div className="h-full w-64 border-r border-neutral-200 bg-white flex flex-col">
+      <ImageFilters />
       <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Images ({filteredIndices.length} / {images.length})
       </div>
-      <ImageFilters />
       <div className="flex-1">
         {filteredIndices.length === 0 ? (
           <div className="px-3 py-4 text-sm text-neutral-500">No matches</div>
