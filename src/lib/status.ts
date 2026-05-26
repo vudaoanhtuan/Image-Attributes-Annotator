@@ -1,16 +1,15 @@
 import type { DatasetConfig, Label } from "@/types/label";
 
-export type ImageStatus = "unviewed" | "missing" | "incomplete" | "complete";
+export type LabelStatus = "none" | "incomplete" | "complete";
+export type ViewStatus = "viewed" | "unviewed";
 
-export function imageStatus(
+export function labelStatus(
   stem: string,
-  viewedSet: Set<string>,
   labels: Map<string, Label>,
-  config: DatasetConfig | null
-): ImageStatus {
-  if (!viewedSet.has(stem)) return "unviewed";
+  config: DatasetConfig | null,
+): LabelStatus {
   const label = labels.get(stem);
-  if (!label) return "missing";
+  if (!label) return "none";
   if (!config) return "complete";
   for (const attr of config.attributes) {
     if (attr.type === "single") {
@@ -26,16 +25,39 @@ export function imageStatus(
   return "complete";
 }
 
-export const STATUS_BG: Record<ImageStatus, string> = {
-  unviewed: "bg-neutral-400",
-  missing: "bg-red-500",
+export function viewStatus(
+  stem: string,
+  viewedSet: Set<string>,
+): ViewStatus {
+  return viewedSet.has(stem) ? "viewed" : "unviewed";
+}
+
+export const LABEL_STATUS_ORDER: LabelStatus[] = [
+  "none",
+  "incomplete",
+  "complete",
+];
+
+export const VIEW_STATUS_ORDER: ViewStatus[] = ["unviewed", "viewed"];
+
+export const LABEL_STATUS_BG: Record<LabelStatus, string> = {
+  none: "bg-red-500",
   incomplete: "bg-amber-400",
   complete: "bg-emerald-500",
 };
 
-export const STATUS_LABEL: Record<ImageStatus, string> = {
-  unviewed: "Unviewed",
-  missing: "No label",
+export const LABEL_STATUS_LABEL: Record<LabelStatus, string> = {
+  none: "No label",
   incomplete: "Incomplete",
   complete: "Complete",
+};
+
+export const VIEW_STATUS_BG: Record<ViewStatus, string> = {
+  unviewed: "bg-neutral-400",
+  viewed: "bg-neutral-700",
+};
+
+export const VIEW_STATUS_LABEL: Record<ViewStatus, string> = {
+  unviewed: "Unviewed",
+  viewed: "Viewed",
 };

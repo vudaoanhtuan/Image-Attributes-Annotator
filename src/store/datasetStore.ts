@@ -1,7 +1,21 @@
 import { create } from "zustand";
 import { api } from "@/lib/tauri";
 import { parseDatasetConfig } from "@/lib/config";
+import { computeFilteredIndices } from "@/lib/filteredImages";
 import type { DatasetConfig, Label } from "@/types/label";
+import type { LabelStatus, ViewStatus } from "@/lib/status";
+
+export type DatasetFilters = {
+  query: string;
+  labelStatuses: Set<LabelStatus>;
+  viewStatuses: Set<ViewStatus>;
+};
+
+export const EMPTY_FILTERS: DatasetFilters = {
+  query: "",
+  labelStatuses: new Set(),
+  viewStatuses: new Set(),
+};
 
 type DatasetState = {
   path: string | null;
@@ -11,12 +25,15 @@ type DatasetState = {
   viewedSet: Set<string>;
   config: DatasetConfig | null;
   imageSize: { width: number; height: number } | null;
+  filters: DatasetFilters;
+  filteredIndices: number[];
   open: (path: string) => Promise<void>;
   close: () => void;
   setIndex: (i: number) => void;
   markViewed: (imageName: string) => void;
   setLabel: (imageName: string, label: Label | null) => void;
   setImageSize: (size: { width: number; height: number } | null) => void;
+  setFilters: (f: DatasetFilters) => void;
   currentImage: () => string | null;
 };
 
@@ -33,6 +50,8 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   viewedSet: new Set(),
   config: null,
   imageSize: null,
+  filters: EMPTY_FILTERS,
+  filteredIndices: [],
 
   open: async (path) => {
     const { images, labels, config } = await api.openDataset(path);
@@ -44,6 +63,8 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       currentIndex: 0,
       config: parseDatasetConfig(config),
       imageSize: null,
+      filters: EMPTY_FILTERS,
+      filteredIndices: images.map((_, i) => i),
     });
   },
 
@@ -56,6 +77,8 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       viewedSet: new Set(),
       config: null,
       imageSize: null,
+      filters: EMPTY_FILTERS,
+      filteredIndices: [],
     });
   },
 
@@ -86,6 +109,18 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
 
   setImageSize: (size) => {
     set({ imageSize: size });
+  },
+
+  setFilters: (filters) => {
+    const { images, labels, viewedSet, config } = get();
+    const filteredIndices = computeFilteredIndices({
+      images,
+      labels,
+      viewedSet,
+      config,
+      filters,
+    });
+    set({ filters, filteredIndices });
   },
 
   currentImage: () => {
