@@ -8,6 +8,9 @@ pub fn run() {
             commands::open_dataset,
             commands::read_label,
             commands::write_label,
+            commands::delete_images,
+            commands::move_images,
+            commands::list_image_subdirs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

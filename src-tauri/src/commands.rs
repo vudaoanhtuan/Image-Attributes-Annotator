@@ -18,6 +18,10 @@ fn images_dir(dataset: &str) -> PathBuf {
     Path::new(dataset).join("images")
 }
 
+fn trash_dir(dataset: &str) -> PathBuf {
+    Path::new(dataset).join(".trash")
+}
+
 fn db_path(dataset: &str) -> PathBuf {
     Path::new(dataset).join("attributes.db")
 }
@@ -306,6 +310,231 @@ pub fn read_label(path: String, image_name: String) -> Result<Option<Value>, Str
         }
     }
     Ok(Some(Value::Object(obj)))
+}
+
+#[derive(Serialize)]
+pub struct DeleteFailure {
+    image_name: String,
+    reason: String,
+}
+
+#[derive(Serialize)]
+pub struct DeleteReport {
+    moved: Vec<String>,
+    failed: Vec<DeleteFailure>,
+}
+
+#[tauri::command]
+pub fn delete_images(
+    path: String,
+    image_names: Vec<String>,
+) -> Result<DeleteReport, String> {
+    let images_root = images_dir(&path);
+    let trash_root = trash_dir(&path);
+
+    let mut conn = open_db(&path)?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    let mut moved: Vec<String> = Vec::new();
+    let mut failed: Vec<DeleteFailure> = Vec::new();
+
+    for name in image_names {
+        let src = images_root.join(&name);
+        let dst = trash_root.join(&name);
+        if let Some(parent) = dst.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                failed.push(DeleteFailure {
+                    image_name: name.clone(),
+                    reason: format!("create_dir_all failed: {e}"),
+                });
+                continue;
+            }
+        }
+        match fs::rename(&src, &dst) {
+            Ok(()) => {
+                if let Err(e) = tx.execute(
+                    "DELETE FROM images WHERE image_file = ?1",
+                    params![name],
+                ) {
+                    failed.push(DeleteFailure {
+                        image_name: name.clone(),
+                        reason: format!("db delete failed: {e}"),
+                    });
+                } else {
+                    moved.push(name);
+                }
+            }
+            Err(e) => {
+                failed.push(DeleteFailure {
+                    image_name: name.clone(),
+                    reason: format!("rename failed: {e}"),
+                });
+            }
+        }
+    }
+
+    tx.commit().map_err(|e| e.to_string())?;
+    Ok(DeleteReport { moved, failed })
+}
+
+#[derive(Serialize)]
+pub struct MoveFailure {
+    image_name: String,
+    reason: String,
+}
+
+#[derive(Serialize)]
+pub struct MovedItem {
+    from: String,
+    to: String,
+}
+
+#[derive(Serialize)]
+pub struct MoveReport {
+    moved: Vec<MovedItem>,
+    failed: Vec<MoveFailure>,
+}
+
+fn validate_subdir(s: &str) -> Result<(), String> {
+    if s.is_empty() {
+        return Ok(());
+    }
+    if s.starts_with('/') {
+        return Err("destination must be a relative path".into());
+    }
+    if s.contains('\\') {
+        return Err("destination must use forward slashes".into());
+    }
+    for part in s.split('/') {
+        if part.is_empty() || part == "." || part == ".." {
+            return Err("destination contains an invalid segment".into());
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn move_images(
+    path: String,
+    image_names: Vec<String>,
+    dest_subdir: String,
+) -> Result<MoveReport, String> {
+    let dest = dest_subdir.trim().trim_matches('/').to_string();
+    validate_subdir(&dest)?;
+    let images_root = images_dir(&path);
+
+    let mut conn = open_db(&path)?;
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    let mut moved: Vec<MovedItem> = Vec::new();
+    let mut failed: Vec<MoveFailure> = Vec::new();
+
+    for from in image_names {
+        let basename = match Path::new(&from).file_name().and_then(|s| s.to_str()) {
+            Some(b) => b.to_string(),
+            None => {
+                failed.push(MoveFailure {
+                    image_name: from.clone(),
+                    reason: "invalid source filename".into(),
+                });
+                continue;
+            }
+        };
+        let to = if dest.is_empty() {
+            basename.clone()
+        } else {
+            format!("{dest}/{basename}")
+        };
+
+        if to == from {
+            moved.push(MovedItem { from: from.clone(), to });
+            continue;
+        }
+
+        let src_path = images_root.join(&from);
+        let dst_path = images_root.join(&to);
+
+        if dst_path.exists() {
+            failed.push(MoveFailure {
+                image_name: from.clone(),
+                reason: "destination exists".into(),
+            });
+            continue;
+        }
+        if let Some(parent) = dst_path.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                failed.push(MoveFailure {
+                    image_name: from.clone(),
+                    reason: format!("create_dir_all failed: {e}"),
+                });
+                continue;
+            }
+        }
+        if let Err(e) = fs::rename(&src_path, &dst_path) {
+            failed.push(MoveFailure {
+                image_name: from.clone(),
+                reason: format!("rename failed: {e}"),
+            });
+            continue;
+        }
+        if let Err(e) = tx.execute(
+            "UPDATE images SET image_file = ?1 WHERE image_file = ?2",
+            params![to, from],
+        ) {
+            // Try to roll back the FS rename so we don't desync.
+            let _ = fs::rename(&dst_path, &src_path);
+            failed.push(MoveFailure {
+                image_name: from.clone(),
+                reason: format!("db update failed: {e}"),
+            });
+            continue;
+        }
+        moved.push(MovedItem { from, to });
+    }
+
+    tx.commit().map_err(|e| e.to_string())?;
+    Ok(MoveReport { moved, failed })
+}
+
+fn collect_subdirs(
+    root: &Path,
+    dir: &Path,
+    out: &mut HashSet<String>,
+) -> Result<(), String> {
+    let entries = fs::read_dir(dir).map_err(|e| e.to_string())?;
+    for entry in entries.flatten() {
+        let p = entry.path();
+        if !p.is_dir() {
+            continue;
+        }
+        if let Some(name) = p.file_name().and_then(|s| s.to_str()) {
+            if name.starts_with('.') {
+                continue;
+            }
+        }
+        let rel = p.strip_prefix(root).map_err(|e| e.to_string())?;
+        let rel_str = rel
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy())
+            .collect::<Vec<_>>()
+            .join("/");
+        out.insert(rel_str);
+        collect_subdirs(root, &p, out)?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub fn list_image_subdirs(path: String) -> Result<Vec<String>, String> {
+    let images_root = images_dir(&path);
+    if !images_root.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut set: HashSet<String> = HashSet::new();
+    collect_subdirs(&images_root, &images_root, &mut set)?;
+    let mut out: Vec<String> = set.into_iter().collect();
+    out.sort();
+    Ok(out)
 }
 
 #[tauri::command]

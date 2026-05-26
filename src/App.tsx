@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import Landing from "@/components/Landing";
-import Workspace from "@/components/Workspace";
+import Landing from "@/shared/components/Landing";
+import Workspace from "@/features/annotator/Workspace";
+import CleanerView from "@/features/cleaner/CleanerView";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
-import { useOpenDatasetHotkey, useAttributeHotkeys } from "@/lib/hotkeys";
+import {
+  useOpenDatasetHotkey,
+  useAttributeHotkeys,
+  useViewModeHotkeys,
+} from "@/lib/hotkeys";
 import { installAppMenu } from "@/lib/menu";
 
 export default function App() {
   const path = useDatasetStore((s) => s.path);
+  const viewMode = useDatasetStore((s) => s.viewMode);
   const [version, setVersion] = useState("");
 
   useOpenDatasetHotkey();
   useAttributeHotkeys();
+  useViewModeHotkeys();
 
   useEffect(() => {
     getVersion().then(setVersion).catch(() => setVersion("dev"));
@@ -35,5 +42,10 @@ export default function App() {
     };
   }, []);
 
-  return path ? <Workspace version={version} /> : <Landing version={version} />;
+  if (!path) return <Landing version={version} />;
+  return viewMode === "annotator" ? (
+    <Workspace version={version} />
+  ) : (
+    <CleanerView />
+  );
 }

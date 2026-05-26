@@ -2,6 +2,7 @@ import { Menu, Submenu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/men
 import { pickAndOpenDataset } from "./openDataset";
 import { closeDataset } from "./closeDataset";
 import { useLabelStore } from "@/store/labelStore";
+import { useDatasetStore } from "@/store/datasetStore";
 
 export async function installAppMenu() {
   const openItem = await MenuItem.new({
@@ -39,6 +40,31 @@ export async function installAppMenu() {
     items: [openItem, saveItem, closeItem, sep, quit],
   });
 
-  const menu = await Menu.new({ items: [fileMenu] });
+  const annotateItem = await MenuItem.new({
+    id: "view-annotate",
+    text: "Annotate",
+    accelerator: "CmdOrCtrl+1",
+    action: () => {
+      if (!useDatasetStore.getState().path) return;
+      useDatasetStore.getState().setViewMode("annotator");
+    },
+  });
+
+  const cleanItem = await MenuItem.new({
+    id: "view-clean",
+    text: "Clean",
+    accelerator: "CmdOrCtrl+2",
+    action: () => {
+      if (!useDatasetStore.getState().path) return;
+      useDatasetStore.getState().setViewMode("cleaner");
+    },
+  });
+
+  const viewMenu = await Submenu.new({
+    text: "View",
+    items: [annotateItem, cleanItem],
+  });
+
+  const menu = await Menu.new({ items: [fileMenu, viewMenu] });
   await menu.setAsAppMenu();
 }

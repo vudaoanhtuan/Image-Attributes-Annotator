@@ -1,21 +1,14 @@
 import { create } from "zustand";
 import { api } from "@/lib/tauri";
 import { parseDatasetConfig } from "@/lib/config";
-import { computeFilteredIndices } from "@/lib/filteredImages";
+import { computeFilteredIndices } from "@/shared/filters/predicates";
+import { EMPTY_FILTER_STATE, type FilterState } from "@/shared/filters/types";
 import type { DatasetConfig, Label } from "@/types/label";
-import type { LabelStatus, ViewStatus } from "@/lib/status";
 
-export type DatasetFilters = {
-  query: string;
-  labelStatuses: Set<LabelStatus>;
-  viewStatuses: Set<ViewStatus>;
-};
+export type ViewMode = "annotator" | "cleaner";
 
-export const EMPTY_FILTERS: DatasetFilters = {
-  query: "",
-  labelStatuses: new Set(),
-  viewStatuses: new Set(),
-};
+export type DatasetFilters = FilterState;
+export const EMPTY_FILTERS: DatasetFilters = EMPTY_FILTER_STATE;
 
 type DatasetState = {
   path: string | null;
@@ -27,6 +20,7 @@ type DatasetState = {
   imageSize: { width: number; height: number } | null;
   filters: DatasetFilters;
   filteredIndices: number[];
+  viewMode: ViewMode;
   open: (path: string) => Promise<void>;
   close: () => void;
   setIndex: (i: number) => void;
@@ -34,6 +28,9 @@ type DatasetState = {
   setLabel: (imageName: string, label: Label | null) => void;
   setImageSize: (size: { width: number; height: number } | null) => void;
   setFilters: (f: DatasetFilters) => void;
+  setViewMode: (m: ViewMode) => void;
+  removeImages: (names: string[]) => void;
+  renameImages: (renames: { from: string; to: string }[]) => void;
   currentImage: () => string | null;
 };
 
@@ -47,6 +44,7 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   imageSize: null,
   filters: EMPTY_FILTERS,
   filteredIndices: [],
+  viewMode: "annotator",
 
   open: async (path) => {
     const { images, labels, config } = await api.openDataset(path);
@@ -60,6 +58,7 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       imageSize: null,
       filters: EMPTY_FILTERS,
       filteredIndices: images.map((_, i) => i),
+      viewMode: "annotator",
     });
   },
 
@@ -74,6 +73,7 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       imageSize: null,
       filters: EMPTY_FILTERS,
       filteredIndices: [],
+      viewMode: "annotator",
     });
   },
 
@@ -114,6 +114,97 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       filters,
     });
     set({ filters, filteredIndices });
+  },
+
+  setViewMode: (m) => {
+    set({ viewMode: m });
+  },
+
+  removeImages: (names) => {
+    if (names.length === 0) return;
+    const drop = new Set(names);
+    const {
+      images,
+      labels,
+      viewedSet,
+      currentIndex,
+      filters,
+      config,
+    } = get();
+    const nextImages = images.filter((n) => !drop.has(n));
+    const nextLabels = new Map(labels);
+    const nextViewed = new Set(viewedSet);
+    for (const n of names) {
+      nextLabels.delete(n);
+      nextViewed.delete(n);
+    }
+    const currentName = images[currentIndex];
+    let nextIndex = currentIndex;
+    if (currentName !== undefined && drop.has(currentName)) {
+      // Pick the closest non-deleted index.
+      nextIndex = Math.min(nextImages.length - 1, currentIndex);
+      if (nextIndex < 0) nextIndex = 0;
+    } else if (currentName !== undefined) {
+      const newPos = nextImages.indexOf(currentName);
+      nextIndex = newPos >= 0 ? newPos : 0;
+    }
+    const filteredIndices = computeFilteredIndices({
+      images: nextImages,
+      labels: nextLabels,
+      viewedSet: nextViewed,
+      config,
+      filters,
+    });
+    set({
+      images: nextImages,
+      labels: nextLabels,
+      viewedSet: nextViewed,
+      currentIndex: nextIndex,
+      filteredIndices,
+    });
+  },
+
+  renameImages: (renames) => {
+    const effective = renames.filter((r) => r.from !== r.to);
+    if (effective.length === 0) return;
+    const map = new Map(effective.map((r) => [r.from, r.to]));
+    const {
+      images,
+      labels,
+      viewedSet,
+      currentIndex,
+      filters,
+      config,
+    } = get();
+    const nextImages = images.map((n) => map.get(n) ?? n);
+    nextImages.sort();
+    const nextLabels = new Map<string, Label>();
+    for (const [k, v] of labels) {
+      nextLabels.set(map.get(k) ?? k, v);
+    }
+    const nextViewed = new Set<string>();
+    for (const n of viewedSet) nextViewed.add(map.get(n) ?? n);
+    const currentName = images[currentIndex];
+    let nextIndex = currentIndex;
+    if (currentName !== undefined) {
+      const target = map.get(currentName) ?? currentName;
+      const pos = nextImages.indexOf(target);
+      nextIndex = pos >= 0 ? pos : Math.min(currentIndex, Math.max(0, nextImages.length - 1));
+    }
+    const filteredIndices = computeFilteredIndices({
+      images: nextImages,
+      labels: nextLabels,
+      viewedSet: nextViewed,
+      config,
+      filters,
+    });
+    set({
+      images: nextImages,
+      labels: nextLabels,
+      viewedSet: nextViewed,
+      currentIndex: nextIndex,
+      filteredIndices,
+    });
   },
 
   currentImage: () => {

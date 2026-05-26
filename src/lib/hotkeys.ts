@@ -46,6 +46,7 @@ export function useAttributeHotkeys() {
     if (map.size === 0) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (useDatasetStore.getState().viewMode !== "annotator") return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       const action = map.get(e.key.toLowerCase());
@@ -62,6 +63,24 @@ export function useAttributeHotkeys() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [map]);
+}
+
+export function useViewModeHotkeys() {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      if (!useDatasetStore.getState().path) return;
+      if (e.key === "1") {
+        e.preventDefault();
+        useDatasetStore.getState().setViewMode("annotator");
+      } else if (e.key === "2") {
+        e.preventDefault();
+        useDatasetStore.getState().setViewMode("cleaner");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 }
 
 export function useArrowHotkeys() {
