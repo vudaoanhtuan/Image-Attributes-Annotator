@@ -4,6 +4,7 @@ import { hotkeyFor, KEY_ROWS } from "@/lib/attrHotkeys";
 import SingleChoice from "./attributes/SingleChoice";
 import MultiChoice from "./attributes/MultiChoice";
 import DirectionDisplay from "./attributes/DirectionDisplay";
+import NumberInput from "./attributes/NumberInput";
 
 export default function AttributePanel() {
   const config = useDatasetStore((s) => s.config);
@@ -11,6 +12,7 @@ export default function AttributePanel() {
   const setSingle = useLabelStore((s) => s.setSingle);
   const toggleMulti = useLabelStore((s) => s.toggleMulti);
   const setDirection = useLabelStore((s) => s.setDirection);
+  const setNumber = useLabelStore((s) => s.setNumber);
 
   if (!config) return null;
 
@@ -31,6 +33,20 @@ export default function AttributePanel() {
               label={attr.label}
               value={typeof v === "number" ? v : undefined}
               onClear={() => setDirection(attr.key, undefined)}
+            />
+          );
+        }
+        if (attr.type === "number") {
+          const v = draft[attr.key];
+          return (
+            <NumberInput
+              key={attr.key}
+              label={attr.label}
+              value={typeof v === "number" ? v : undefined}
+              subtype={attr.subtype}
+              min={attr.min}
+              max={attr.max}
+              onChange={(nv) => setNumber(attr.key, nv)}
             />
           );
         }

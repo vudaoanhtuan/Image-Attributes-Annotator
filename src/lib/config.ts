@@ -45,6 +45,20 @@ function parseAttribute(raw: unknown): AttributeSchema | null {
       typeof raw.startDeg === "number" ? raw.startDeg : undefined;
     return { key, label, type, count, startDeg };
   }
+  if (type === "number") {
+    const subtype =
+      raw.subtype === "int" || raw.subtype === "float" ? raw.subtype : undefined;
+    const min =
+      typeof raw.min === "number" && Number.isFinite(raw.min) ? raw.min : undefined;
+    const max =
+      typeof raw.max === "number" && Number.isFinite(raw.max) ? raw.max : undefined;
+    const step =
+      typeof raw.step === "number" && Number.isFinite(raw.step) && raw.step > 0
+        ? raw.step
+        : undefined;
+    if (min !== undefined && max !== undefined && min > max) return null;
+    return { key, label, type, subtype, min, max, step };
+  }
   return null;
 }
 

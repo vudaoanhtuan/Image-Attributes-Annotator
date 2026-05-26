@@ -13,6 +13,15 @@ export type AttributeSchema =
       type: "direction";
       count?: number;
       startDeg?: number;
+    }
+  | {
+      key: string;
+      label: string;
+      type: "number";
+      subtype?: "int" | "float";
+      min?: number;
+      max?: number;
+      step?: number;
     };
 
 export type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";

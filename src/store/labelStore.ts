@@ -13,6 +13,7 @@ type LabelState = {
   boundImage: string | null;
   loadFor: (imageName: string) => Promise<void>;
   setDirection: (key: string, value: number | undefined) => void;
+  setNumber: (key: string, value: number | undefined) => void;
   setSingle: (key: string, value: string | undefined) => void;
   toggleMulti: (key: string, value: string) => void;
   flush: () => Promise<void>;
@@ -55,6 +56,14 @@ export const useLabelStore = create<LabelState>((set, get) => ({
   },
 
   setDirection: (key, value) => {
+    const draft = { ...get().draft };
+    if (value === undefined) delete draft[key];
+    else draft[key] = value;
+    set({ draft, dirty: true, status: "dirty" });
+    get().scheduleSave();
+  },
+
+  setNumber: (key, value) => {
     const draft = { ...get().draft };
     if (value === undefined) delete draft[key];
     else draft[key] = value;
