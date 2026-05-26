@@ -12,6 +12,10 @@ export default function QueryInput({
   return (
     <input
       type="text"
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck={false}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={(e) => {

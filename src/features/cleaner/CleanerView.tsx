@@ -233,6 +233,10 @@ function MoveModal({
           </label>
           <input
             list="cleaner-subdirs"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             value={value}
             autoFocus
             onChange={(e) => setValue(e.target.value)}

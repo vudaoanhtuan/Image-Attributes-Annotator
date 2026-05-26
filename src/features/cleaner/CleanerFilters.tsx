@@ -368,6 +368,10 @@ function RangeRow({
       <div className="flex items-center gap-1 text-sm">
         <input
           type="number"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           step={step}
           value={min ?? ""}
           onChange={(e) => onChange(parse(e.target.value), max)}
@@ -377,6 +381,10 @@ function RangeRow({
         <span className="text-neutral-500">to</span>
         <input
           type="number"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           step={step}
           value={max ?? ""}
           onChange={(e) => onChange(min, parse(e.target.value))}

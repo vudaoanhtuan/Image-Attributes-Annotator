@@ -82,6 +82,10 @@ export default function NumberInput({
       <div className="relative">
         <input
           type="text"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           inputMode={isInt ? "numeric" : "decimal"}
           value={text}
           placeholder={placeholder}
