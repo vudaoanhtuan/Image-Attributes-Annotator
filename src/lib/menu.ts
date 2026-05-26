@@ -1,6 +1,7 @@
 import { Menu, Submenu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { pickAndOpenDataset } from "./openDataset";
 import { closeDataset } from "./closeDataset";
+import { useLabelStore } from "@/store/labelStore";
 
 export async function installAppMenu() {
   const openItem = await MenuItem.new({
@@ -9,6 +10,15 @@ export async function installAppMenu() {
     accelerator: "CmdOrCtrl+O",
     action: () => {
       void pickAndOpenDataset();
+    },
+  });
+
+  const saveItem = await MenuItem.new({
+    id: "save",
+    text: "Save",
+    accelerator: "CmdOrCtrl+S",
+    action: () => {
+      void useLabelStore.getState().flush();
     },
   });
 
@@ -26,7 +36,7 @@ export async function installAppMenu() {
 
   const fileMenu = await Submenu.new({
     text: "File",
-    items: [openItem, closeItem, sep, quit],
+    items: [openItem, saveItem, closeItem, sep, quit],
   });
 
   const menu = await Menu.new({ items: [fileMenu] });

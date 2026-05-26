@@ -6,7 +6,6 @@ import {
   LABEL_STATUS_BG,
   LABEL_STATUS_LABEL,
   LABEL_STATUS_ORDER,
-  VIEW_STATUS_BG,
   VIEW_STATUS_LABEL,
   VIEW_STATUS_ORDER,
   type LabelStatus,
@@ -168,9 +167,6 @@ export default function ImageFilters() {
                     : "bg-white border-neutral-300 text-neutral-600 hover:bg-neutral-100"
                 }`}
               >
-                <span
-                  className={`inline-block w-2 h-2 rounded-full shrink-0 ${VIEW_STATUS_BG[s]}`}
-                />
                 <span className="truncate">{VIEW_STATUS_LABEL[s]}</span>
                 <span className="ml-auto tabular-nums text-neutral-500">
                   {viewCounts[s]}
