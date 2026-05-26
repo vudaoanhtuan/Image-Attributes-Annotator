@@ -44,6 +44,7 @@ export default function StatusBar() {
   const labels = useDatasetStore((s) => s.labels);
   const viewedSet = useDatasetStore((s) => s.viewedSet);
   const config = useDatasetStore((s) => s.config);
+  const imageSize = useDatasetStore((s) => s.imageSize);
   const status = useLabelStore((s) => s.status);
 
   const counts = useMemo(() => {
@@ -67,6 +68,9 @@ export default function StatusBar() {
         </span>
       </div>
       <div className="flex items-center shrink-0 divide-x divide-neutral-300">
+        <span className="px-3 text-neutral-700 tabular-nums text-right w-24">
+          {imageSize ? `${imageSize.width} × ${imageSize.height}` : "—"}
+        </span>
         {STATUS_ORDER.map((s) => (
           <span
             key={s}

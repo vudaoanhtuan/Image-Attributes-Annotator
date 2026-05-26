@@ -10,11 +10,13 @@ type DatasetState = {
   labels: Map<string, Label>;
   viewedSet: Set<string>;
   config: DatasetConfig | null;
+  imageSize: { width: number; height: number } | null;
   open: (path: string) => Promise<void>;
   close: () => void;
   setIndex: (i: number) => void;
   markViewed: (imageName: string) => void;
   setLabel: (imageName: string, label: Label | null) => void;
+  setImageSize: (size: { width: number; height: number } | null) => void;
   currentImage: () => string | null;
 };
 
@@ -30,6 +32,7 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   labels: new Map(),
   viewedSet: new Set(),
   config: null,
+  imageSize: null,
 
   open: async (path) => {
     const { images, labels, config } = await api.openDataset(path);
@@ -40,6 +43,7 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       viewedSet: new Set(),
       currentIndex: 0,
       config: parseDatasetConfig(config),
+      imageSize: null,
     });
   },
 
@@ -51,14 +55,16 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       labels: new Map(),
       viewedSet: new Set(),
       config: null,
+      imageSize: null,
     });
   },
 
   setIndex: (i) => {
-    const { images } = get();
+    const { images, currentIndex } = get();
     if (images.length === 0) return;
     const clamped = Math.max(0, Math.min(images.length - 1, i));
-    set({ currentIndex: clamped });
+    if (clamped === currentIndex) return;
+    set({ currentIndex: clamped, imageSize: null });
   },
 
   markViewed: (imageName) => {
@@ -76,6 +82,10 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
     if (label === null) next.delete(key);
     else next.set(key, label);
     set({ labels: next });
+  },
+
+  setImageSize: (size) => {
+    set({ imageSize: size });
   },
 
   currentImage: () => {
