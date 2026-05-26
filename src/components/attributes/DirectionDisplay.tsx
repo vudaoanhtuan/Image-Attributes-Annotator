@@ -9,7 +9,7 @@ export default function DirectionDisplay({
 }) {
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium text-neutral-700">{label}</div>
+      <div className="text-base font-medium text-neutral-700">{label}</div>
       <div className="flex items-center gap-3">
         <span className="font-mono text-base text-neutral-900 tabular-nums">
           {value === undefined ? "—" : `${value.toFixed(1)}°`}
