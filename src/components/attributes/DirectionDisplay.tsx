@@ -10,17 +10,22 @@ export default function DirectionDisplay({
   return (
     <div className="space-y-2">
       <div className="text-base font-medium text-neutral-700">{label}</div>
-      <div className="flex items-center gap-3">
-        <span className="font-mono text-base text-neutral-900 tabular-nums">
-          {value === undefined ? "—" : `${value.toFixed(1)}°`}
-        </span>
+      <div className="relative">
+        <div className="w-full pl-3 pr-9 py-1.5 rounded-md text-base border border-neutral-300 bg-white text-neutral-700 font-mono tabular-nums">
+          {value === undefined ? (
+            <span className="text-neutral-400">—</span>
+          ) : (
+            `${value.toFixed(1)}°`
+          )}
+        </div>
         {value !== undefined && (
           <button
             type="button"
             onClick={onClear}
-            className="px-2 py-0.5 rounded text-xs border border-neutral-300 text-neutral-600 hover:bg-neutral-100"
+            className="absolute inset-y-0 right-0 flex items-center justify-center w-8 text-neutral-400 hover:text-neutral-700"
+            aria-label="Clear"
           >
-            Clear
+            ✕
           </button>
         )}
       </div>
