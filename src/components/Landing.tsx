@@ -18,7 +18,7 @@ export default function Landing({ version }: { version: string }) {
   };
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center gap-6">
+    <div className="h-full w-full flex flex-col items-center justify-center gap-6 border-t border-neutral-200">
       <div className="text-center">
         <h1 className="text-3xl font-semibold text-neutral-900">
           Image Attributes Annotator

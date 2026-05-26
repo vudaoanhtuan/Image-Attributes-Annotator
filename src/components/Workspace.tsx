@@ -37,7 +37,7 @@ export default function Workspace({ version: _version }: { version: string }) {
   const currentImage = images[currentIndex];
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col border-t border-neutral-200">
       <div className="flex-1 flex min-h-0">
         <ImageList />
         <div className="flex-1 flex items-center justify-center min-w-0 p-6">
