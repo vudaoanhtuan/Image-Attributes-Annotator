@@ -19,7 +19,9 @@ export const api = {
 };
 
 export function imageUrl(datasetPath: string, imageName: string): string {
-  // Join with platform-safe separator; Tauri's convertFileSrc handles paths.
+  // Backend emits image_file with forward slashes; normalize to the dataset's
+  // separator so Windows paths stay consistent end-to-end.
   const sep = datasetPath.includes("\\") ? "\\" : "/";
-  return convertFileSrc(`${datasetPath}${sep}images${sep}${imageName}`);
+  const name = sep === "\\" ? imageName.replace(/\//g, "\\") : imageName;
+  return convertFileSrc(`${datasetPath}${sep}images${sep}${name}`);
 }
