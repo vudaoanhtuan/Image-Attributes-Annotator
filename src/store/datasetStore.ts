@@ -37,11 +37,6 @@ type DatasetState = {
   currentImage: () => string | null;
 };
 
-function stem(name: string) {
-  const i = name.lastIndexOf(".");
-  return i >= 0 ? name.slice(0, i) : name;
-}
-
 export const useDatasetStore = create<DatasetState>((set, get) => ({
   path: null,
   images: [],
@@ -91,19 +86,17 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   },
 
   markViewed: (imageName) => {
-    const key = stem(imageName);
     const current = get().viewedSet;
-    if (current.has(key)) return;
+    if (current.has(imageName)) return;
     const next = new Set(current);
-    next.add(key);
+    next.add(imageName);
     set({ viewedSet: next });
   },
 
   setLabel: (imageName, label) => {
-    const key = stem(imageName);
     const next = new Map(get().labels);
-    if (label === null) next.delete(key);
-    else next.set(key, label);
+    if (label === null) next.delete(imageName);
+    else next.set(imageName, label);
     set({ labels: next });
   },
 

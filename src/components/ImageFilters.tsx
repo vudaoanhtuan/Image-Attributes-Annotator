@@ -12,11 +12,6 @@ import {
   type ViewStatus,
 } from "@/lib/status";
 
-function stem(name: string) {
-  const i = name.lastIndexOf(".");
-  return i >= 0 ? name.slice(0, i) : name;
-}
-
 function setsEqual<T>(a: Set<T>, b: Set<T>) {
   if (a.size !== b.size) return false;
   for (const v of a) if (!b.has(v)) return false;
@@ -53,9 +48,8 @@ export default function ImageFilters() {
     };
     const vc: Record<ViewStatus, number> = { unviewed: 0, viewed: 0 };
     for (const name of images) {
-      const st = stem(name);
-      lc[labelStatus(st, labels, config)]++;
-      vc[viewStatus(st, viewedSet)]++;
+      lc[labelStatus(name, labels, config)]++;
+      vc[viewStatus(name, viewedSet)]++;
     }
     return { labelCounts: lc, viewCounts: vc };
   }, [images, labels, viewedSet, config]);

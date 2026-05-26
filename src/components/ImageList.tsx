@@ -9,11 +9,6 @@ import {
 } from "@/lib/status";
 import ImageFilters from "./ImageFilters";
 
-function stem(name: string) {
-  const i = name.lastIndexOf(".");
-  return i >= 0 ? name.slice(0, i) : name;
-}
-
 export default function ImageList() {
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
@@ -41,9 +36,8 @@ export default function ImageList() {
         ) : (
           filteredIndices.map((originalIndex) => {
             const name = images[originalIndex];
-            const st = stem(name);
-            const ls = labelStatus(st, labels, config);
-            const vs = viewStatus(st, viewedSet);
+            const ls = labelStatus(name, labels, config);
+            const vs = viewStatus(name, viewedSet);
             const isCurrent = originalIndex === currentIndex;
             const dim = vs === "unviewed" && !isCurrent;
             return (
