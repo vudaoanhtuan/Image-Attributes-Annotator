@@ -5,7 +5,10 @@ import {
   isCategorySet,
   type CategoryValue,
 } from "./CategorySelect";
-import { tagColors } from "./tagColor";
+import TagIcon from "./tags/TagIcon";
+
+const BADGE_CLASS =
+  "inline-flex items-center justify-center w-8 h-8 rounded-md text-sm font-bold border uppercase shrink-0";
 
 const NO_TAG = "__no_tag__";
 
@@ -219,20 +222,15 @@ export function MoveByTagModal({
               if (!r) return null;
               const names = groups.get(k) ?? [];
               const isTag = k !== NO_TAG;
-              const c = isTag ? tagColors(k) : null;
               const ready = r.checked && isCategorySet(r.dest);
-              const rowBg = r.checked
-                ? c
-                  ? { backgroundColor: c.bg, borderColor: c.border }
-                  : { backgroundColor: "#f5f5f5", borderColor: "#d4d4d4" }
-                : { backgroundColor: "#fafafa", borderColor: "#e5e5e5" };
 
               return (
                 <li
                   key={k}
-                  style={rowBg}
                   className={`relative flex items-center gap-3 rounded-lg border px-3 py-2.5 transition ${
-                    r.checked ? "" : "opacity-60"
+                    r.checked
+                      ? "bg-neutral-100 border-neutral-300"
+                      : "bg-neutral-50 border-neutral-200 opacity-60"
                   }`}
                 >
                   <label className="flex items-center cursor-pointer shrink-0">
@@ -250,27 +248,15 @@ export function MoveByTagModal({
                   </label>
 
                   <div className="flex items-center gap-2 shrink-0 w-40">
-                    {c ? (
-                      <span
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-md text-sm font-bold border"
-                        style={{
-                          backgroundColor: c.badgeBg,
-                          color: c.badgeText,
-                          borderColor: c.activeBorder,
-                        }}
-                      >
-                        {k.toUpperCase()}
-                      </span>
+                    {isTag ? (
+                      <TagIcon tag={k} className={BADGE_CLASS} />
                     ) : (
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[10px] font-medium border bg-white border-neutral-300 text-neutral-500">
                         N/A
                       </span>
                     )}
                     <div className="min-w-0">
-                      <div
-                        className="text-sm font-medium truncate"
-                        style={c ? { color: c.text } : { color: "#525252" }}
-                      >
+                      <div className="text-sm font-medium truncate text-neutral-700">
                         {k === NO_TAG ? "No tag" : `Tag ${k.toUpperCase()}`}
                       </div>
                       <div className="text-xs text-neutral-500 tabular-nums">
@@ -481,17 +467,14 @@ export function DeleteByTagModal({
               const isOn = !!checked[k];
               const names = groups.get(k) ?? [];
               const isTag = k !== NO_TAG;
-              const c = isTag ? tagColors(k) : null;
-              const rowBg = isOn
-                ? { backgroundColor: "#fef2f2", borderColor: "#fecaca" }
-                : { backgroundColor: "#fafafa", borderColor: "#e5e5e5" };
 
               return (
                 <li
                   key={k}
-                  style={rowBg}
                   className={`relative flex items-center gap-3 rounded-lg border px-3 py-2.5 transition ${
-                    isOn ? "" : "opacity-60"
+                    isOn
+                      ? "bg-red-50 border-red-200"
+                      : "bg-neutral-50 border-neutral-200 opacity-60"
                   }`}
                 >
                   <label className="flex items-center cursor-pointer shrink-0">
@@ -509,27 +492,15 @@ export function DeleteByTagModal({
                   </label>
 
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {c ? (
-                      <span
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-md text-sm font-bold border shrink-0"
-                        style={{
-                          backgroundColor: c.badgeBg,
-                          color: c.badgeText,
-                          borderColor: c.activeBorder,
-                        }}
-                      >
-                        {k.toUpperCase()}
-                      </span>
+                    {isTag ? (
+                      <TagIcon tag={k} className={BADGE_CLASS} />
                     ) : (
                       <span className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[10px] font-medium border bg-white border-neutral-300 text-neutral-500 shrink-0">
                         N/A
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div
-                        className="text-sm font-medium truncate"
-                        style={c ? { color: c.text } : { color: "#525252" }}
-                      >
+                      <div className="text-sm font-medium truncate text-neutral-700">
                         {k === NO_TAG ? "No tag" : `Tag ${k.toUpperCase()}`}
                       </div>
                       <div className="text-xs text-neutral-500 tabular-nums">
@@ -538,24 +509,6 @@ export function DeleteByTagModal({
                     </div>
                   </div>
 
-                  <div className="shrink-0">
-                    {isOn ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-red-700">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                          <path
-                            d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M3 4h10M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        Delete
-                      </span>
-                    ) : (
-                      <span className="text-xs text-neutral-400">Skip</span>
-                    )}
-                  </div>
                 </li>
               );
             })}

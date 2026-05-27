@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useCleanerStore } from "@/store/cleanerStore";
 import HorizontalScroller from "@/shared/components/HorizontalScroller";
 import { CloseIcon } from "@/shared/components/icons";
-import { tagColors } from "./tagColor";
+import TagIcon from "./TagIcon";
 
 export default function TagBottomBar() {
   const selectedSet = useCleanerStore((s) => s.selectedSet);
@@ -73,16 +73,9 @@ function TagChip({
   count: number;
   onRemove: () => void;
 }) {
-  const c = tagColors(tag);
   return (
     <span className="inline-flex items-center gap-1.5 pl-0.5 pr-0.5 py-0.5 rounded border border-neutral-300 bg-white tabular-nums text-sm text-neutral-700">
-      <span
-        aria-label={`tag ${tag.toUpperCase()}`}
-        className="w-5 h-5 rounded flex items-center justify-center text-xs font-semibold uppercase"
-        style={{ backgroundColor: c.badgeBg, color: c.badgeText }}
-      >
-        {tag}
-      </span>
+      <TagIcon tag={tag} />
       <span>{count}</span>
       <button
         type="button"

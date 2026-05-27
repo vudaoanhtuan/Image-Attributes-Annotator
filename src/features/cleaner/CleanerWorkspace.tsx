@@ -3,8 +3,8 @@ import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore, type CleanerReport } from "@/store/cleanerStore";
 import CleanerFilters from "./CleanerFilters";
 import ImageGrid from "./ImageGrid";
-import TagBottomBar from "./TagBottomBar";
-import TagViewDialog from "./TagViewDialog";
+import TagBottomBar from "./tags/TagBottomBar";
+import TagViewDialog from "./tags/TagViewDialog";
 import WorkspaceLayout from "@/shared/components/WorkspaceLayout";
 
 export default function CleanerWorkspace() {

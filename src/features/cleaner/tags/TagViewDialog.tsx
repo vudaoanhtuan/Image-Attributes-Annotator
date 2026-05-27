@@ -11,8 +11,8 @@ import {
   MoveModal,
   type DeleteByTagPlan,
   type MoveByTagPlan,
-} from "./modals";
-import { tagColors } from "./tagColor";
+} from "../modals";
+import TagIcon from "./TagIcon";
 
 const CELL_W = 140;
 const CELL_H = 220;
@@ -215,10 +215,8 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
             const count = groups.get(k)?.length ?? 0;
             const active = k === activeTab;
             const isTag = k !== NO_TAG;
-            const c = isTag ? tagColors(k) : null;
-            const squareStyle = c
-              ? { backgroundColor: c.badgeBg, color: c.badgeText }
-              : undefined;
+            const squareClass =
+              "inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold uppercase";
             return (
               <button
                 key={k}
@@ -230,14 +228,13 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-100"
                 }`}
               >
-                <span
-                  style={squareStyle}
-                  className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold ${
-                    c ? "" : "bg-neutral-300 text-neutral-600"
-                  }`}
-                >
-                  {isTag ? k.toUpperCase() : "·"}
-                </span>
+                {isTag ? (
+                  <TagIcon tag={k} className={squareClass} />
+                ) : (
+                  <span className={`${squareClass} bg-neutral-300 text-neutral-600`}>
+                    ·
+                  </span>
+                )}
                 <span className="tabular-nums">{count}</span>
               </button>
             );
