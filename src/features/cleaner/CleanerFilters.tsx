@@ -3,7 +3,7 @@ import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
 import { labelStatus, type LabelStatus } from "@/lib/status";
 import TextInput from "@/shared/components/inputs/TextInput";
-import { LabelStatusButtons } from "@/shared/filters/ui/StatusFilterButtons";
+import { LabelStatusFilter } from "@/shared/filters/ui/StatusFilter";
 import NumberInput from "@/shared/components/inputs/NumberInput";
 import type { AttributeSchema } from "@/types/label";
 import {
@@ -108,7 +108,7 @@ export default function CleanerFilters() {
           label="File name"
           placeholder="Filter by filename"
         />
-        <LabelStatusButtons
+        <LabelStatusFilter
           selected={draft.labelStatuses}
           onToggle={toggleLabelStatus}
           onClear={() => setDraft((d) => ({ ...d, labelStatuses: new Set() }))}

@@ -8,9 +8,9 @@ import {
 } from "@/lib/status";
 import TextInput from "@/shared/components/inputs/TextInput";
 import {
-  LabelStatusButtons,
-  ViewStatusButtons,
-} from "@/shared/filters/ui/StatusFilterButtons";
+  LabelStatusFilter,
+  ViewStatusFilter,
+} from "@/shared/filters/ui/StatusFilter";
 
 function setsEqual<T>(a: Set<T>, b: Set<T>) {
   if (a.size !== b.size) return false;
@@ -106,14 +106,16 @@ export default function ImageFilters() {
           label="File name"
           placeholder="Filter by filename"
         />
-        <LabelStatusButtons
+        <LabelStatusFilter
           selected={labelStatuses}
           onToggle={toggleLabelStatus}
+          onClear={() => setLabelStatuses(new Set())}
           counts={labelCounts}
         />
-        <ViewStatusButtons
+        <ViewStatusFilter
           selected={viewStatuses}
           onToggle={toggleViewStatus}
+          onClear={() => setViewStatuses(new Set())}
           counts={viewCounts}
         />
         <div className="flex items-center gap-2 pt-1">
