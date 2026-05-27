@@ -11,15 +11,14 @@ import {
   MoveModal,
   type DeleteByTagPlan,
   type MoveByTagPlan,
-} from "../modals";
+} from "./modals";
 import TagIcon from "./TagIcon";
+import { NO_TAG, NO_TAG_LABEL } from "./constants";
 
 const CELL_W = 140;
 const CELL_H = 220;
 const GAP = 8;
 const SCROLLBAR_W = 16;
-
-const NO_TAG = "__no_tag__";
 
 export default function TagViewDialog({ onClose }: { onClose: () => void }) {
   const path = useDatasetStore((s) => s.path);
@@ -160,7 +159,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
   };
 
   const tagLabel =
-    activeTab === NO_TAG ? "no tag" : activeTab.toUpperCase();
+    activeTab === NO_TAG ? NO_TAG_LABEL.toLowerCase() : activeTab.toUpperCase();
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center">
@@ -202,7 +201,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={() => setDeletingByTag(true)}
               disabled={allNames.length === 0 || busy}
-              className="px-3 py-1 text-sm rounded border bg-white border-red-400 text-red-700 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1 text-sm rounded border bg-red-600 border-red-700 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
             >
               Delete by tag
             </button>
@@ -231,8 +230,8 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
                 {isTag ? (
                   <TagIcon tag={k} className={squareClass} />
                 ) : (
-                  <span className={`${squareClass} bg-neutral-300 text-neutral-600`}>
-                    ·
+                  <span className="inline-flex items-center h-6 text-neutral-700">
+                    {NO_TAG_LABEL}
                   </span>
                 )}
                 <span className="tabular-nums">{count}</span>

@@ -141,6 +141,7 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
   // ("select → press hotkey → these are now in bucket X, scratch buffer empty").
   // Every other action keeps `selectedSet` and `tags` independent.
   assignTagToSelected: (tag) => {
+    if (tag === "") return;
     const { selectedSet, tags } = get();
     if (selectedSet.size === 0) return;
     const nextTags = new Map(tags);
