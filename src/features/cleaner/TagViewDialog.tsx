@@ -17,7 +17,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
   const path = useDatasetStore((s) => s.path);
   const selectedSet = useCleanerStore((s) => s.selectedSet);
   const tags = useCleanerStore((s) => s.tags);
-  const removeFromSelection = useCleanerStore((s) => s.removeFromSelection);
+  const removeImage = useCleanerStore((s) => s.removeImage);
   const applyDelete = useCleanerStore((s) => s.applyDelete);
   const applyMove = useCleanerStore((s) => s.applyMove);
   const busy = useCleanerStore((s) => s.busy);
@@ -100,7 +100,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
         if (e.metaKey || e.ctrlKey || e.altKey) return;
         e.preventDefault();
         const idx = currentNames.indexOf(focusedName);
-        removeFromSelection(focusedName);
+        removeImage(focusedName);
         const next = currentNames[idx + 1] ?? currentNames[idx - 1] ?? null;
         setFocusedName(next);
       }
@@ -110,7 +110,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
   }, [
     focusedName,
     currentNames,
-    removeFromSelection,
+    removeImage,
     onClose,
     confirmingDelete,
     movingOpen,
@@ -140,7 +140,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
       >
         <div className="px-5 py-3 border-b border-neutral-200 flex items-center">
           <h2 className="text-lg font-semibold text-neutral-900">
-            Selected images by tag
+            Images by tag
           </h2>
           <div className="flex-1" />
           <button
@@ -206,7 +206,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
             <kbd className="px-1 py-0.5 border border-neutral-300 rounded bg-neutral-100 text-neutral-700">
               x
             </kbd>{" "}
-            to remove it from the selection.
+            to remove it from this view.
           </div>
           <div className="flex items-center gap-2">
             <button

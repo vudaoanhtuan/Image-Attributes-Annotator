@@ -39,11 +39,11 @@ type CleanerState = {
   assignTagToSelected: (tag: string) => void;
   untagAll: () => void;
   untagByTag: (tag: string) => void;
-  removeFromSelection: (name: string) => void;
-  applyDelete: (names?: string[]) => Promise<DeleteReport | null>;
+  removeImage: (name: string) => void;
+  applyDelete: (names: string[]) => Promise<DeleteReport | null>;
   applyMove: (
     destSubdir: string,
-    names?: string[],
+    names: string[],
   ) => Promise<MoveReport | null>;
   setTagDialogOpen: (open: boolean) => void;
   dismissReport: () => void;
@@ -131,9 +131,12 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
   },
 
   clearSelection: () => {
-    set({ selectedSet: new Set(), tags: new Map(), lastClickedIndex: null });
+    set({ selectedSet: new Set(), lastClickedIndex: null });
   },
 
+  // Intentional coupling: tag-and-deselect is a single user transition
+  // ("select → press hotkey → these are now in bucket X, scratch buffer empty").
+  // Every other action keeps `selectedSet` and `tags` independent.
   assignTagToSelected: (tag) => {
     const { selectedSet, tags } = get();
     if (selectedSet.size === 0) return;
@@ -161,7 +164,10 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
     if (changed) set({ tags: next });
   },
 
-  removeFromSelection: (name) => {
+  // Remove an image from the working set entirely (both selection and tags).
+  // Used by the View dialog's `x` action, which shows the union of selected
+  // and tagged images.
+  removeImage: (name) => {
     const { selectedSet, tags } = get();
     const next = new Set(selectedSet);
     next.delete(name);
@@ -170,36 +176,26 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
     set({ selectedSet: next, tags: nextTags });
   },
 
-  applyDelete: async (explicitNames) => {
+  applyDelete: async (names) => {
     const { selectedSet, tags } = get();
     const path = useDatasetStore.getState().path;
-    const names = explicitNames ?? Array.from(selectedSet);
     if (!path || names.length === 0) return null;
     set({ busy: true });
     try {
       const report = await api.deleteImages(path, names);
       useDatasetStore.getState().removeImages(report.moved);
-      if (explicitNames) {
-        const nextSel = new Set(selectedSet);
-        const nextTags = new Map(tags);
-        for (const name of report.moved) {
-          nextSel.delete(name);
-          nextTags.delete(name);
-        }
-        set({
-          selectedSet: nextSel,
-          tags: nextTags,
-          busy: false,
-          lastReport: { kind: "delete", report },
-        });
-      } else {
-        set({
-          selectedSet: new Set(),
-          tags: new Map(),
-          busy: false,
-          lastReport: { kind: "delete", report },
-        });
+      const nextSel = new Set(selectedSet);
+      const nextTags = new Map(tags);
+      for (const name of report.moved) {
+        nextSel.delete(name);
+        nextTags.delete(name);
       }
+      set({
+        selectedSet: nextSel,
+        tags: nextTags,
+        busy: false,
+        lastReport: { kind: "delete", report },
+      });
       return report;
     } catch (e) {
       console.error("delete_images failed", e);
@@ -208,36 +204,26 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
     }
   },
 
-  applyMove: async (destSubdir, explicitNames) => {
+  applyMove: async (destSubdir, names) => {
     const { selectedSet, tags } = get();
     const path = useDatasetStore.getState().path;
-    const names = explicitNames ?? Array.from(selectedSet);
     if (!path || names.length === 0) return null;
     set({ busy: true });
     try {
       const report = await api.moveImages(path, names, destSubdir);
       useDatasetStore.getState().renameImages(report.moved);
-      if (explicitNames) {
-        const nextSel = new Set(selectedSet);
-        const nextTags = new Map(tags);
-        for (const m of report.moved) {
-          nextSel.delete(m.from);
-          nextTags.delete(m.from);
-        }
-        set({
-          selectedSet: nextSel,
-          tags: nextTags,
-          busy: false,
-          lastReport: { kind: "move", report },
-        });
-      } else {
-        set({
-          selectedSet: new Set(),
-          tags: new Map(),
-          busy: false,
-          lastReport: { kind: "move", report },
-        });
+      const nextSel = new Set(selectedSet);
+      const nextTags = new Map(tags);
+      for (const m of report.moved) {
+        nextSel.delete(m.from);
+        nextTags.delete(m.from);
       }
+      set({
+        selectedSet: nextSel,
+        tags: nextTags,
+        busy: false,
+        lastReport: { kind: "move", report },
+      });
       return report;
     } catch (e) {
       console.error("move_images failed", e);
