@@ -4,11 +4,11 @@ import {
   type DeleteReport,
   type MoveReport,
 } from "@/lib/tauri";
-import { buildPredicate } from "@/shared/filters/predicates";
 import {
-  EMPTY_FILTER_STATE,
-  type FilterState,
-} from "@/shared/filters/types";
+  EMPTY_CLEANER_FILTER_STATE,
+  buildCleanerPredicate,
+  type CleanerFilterState,
+} from "@/features/cleaner/filter";
 import { useDatasetStore } from "./datasetStore";
 
 export type CleanerReport =
@@ -16,7 +16,7 @@ export type CleanerReport =
   | { kind: "move"; report: MoveReport };
 
 type CleanerState = {
-  filters: FilterState;
+  filters: CleanerFilterState;
   filteredIndices: number[];
   selectedSet: Set<string>;
   lastClickedIndex: number | null;
@@ -25,7 +25,7 @@ type CleanerState = {
 
   recompute: () => void;
   resetOnDatasetChange: () => void;
-  setFilters: (f: FilterState) => void;
+  setFilters: (f: CleanerFilterState) => void;
   toggleSelected: (
     name: string,
     index: number,
@@ -38,9 +38,9 @@ type CleanerState = {
   dismissReport: () => void;
 };
 
-function compute(filters: FilterState): number[] {
-  const { images, labels, viewedSet, config } = useDatasetStore.getState();
-  const pred = buildPredicate(filters, labels, viewedSet, config);
+function compute(filters: CleanerFilterState): number[] {
+  const { images, labels, config } = useDatasetStore.getState();
+  const pred = buildCleanerPredicate(filters, labels, config);
   const out: number[] = [];
   for (let i = 0; i < images.length; i++) {
     if (pred(images[i])) out.push(i);
@@ -49,7 +49,7 @@ function compute(filters: FilterState): number[] {
 }
 
 export const useCleanerStore = create<CleanerState>((set, get) => ({
-  filters: EMPTY_FILTER_STATE,
+  filters: EMPTY_CLEANER_FILTER_STATE,
   filteredIndices: [],
   selectedSet: new Set(),
   lastClickedIndex: null,
@@ -62,7 +62,7 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
 
   resetOnDatasetChange: () => {
     set({
-      filters: EMPTY_FILTER_STATE,
+      filters: EMPTY_CLEANER_FILTER_STATE,
       filteredIndices: [],
       selectedSet: new Set(),
       lastClickedIndex: null,
@@ -168,7 +168,6 @@ useDatasetStore.subscribe((state, prev) => {
   if (
     state.images !== prev.images ||
     state.labels !== prev.labels ||
-    state.viewedSet !== prev.viewedSet ||
     state.config !== prev.config
   ) {
     if (state.path !== prev.path) {

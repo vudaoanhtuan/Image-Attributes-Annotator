@@ -11,15 +11,30 @@ import {
 export function LabelStatusButtons({
   selected,
   onToggle,
+  onClear,
   counts,
 }: {
   selected: Set<LabelStatus>;
   onToggle: (s: LabelStatus) => void;
+  onClear?: () => void;
   counts?: Record<LabelStatus, number>;
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-base text-neutral-600">Label status</div>
+      <div className="flex items-center text-base text-neutral-600">
+        <span>Label status</span>
+        {onClear && selected.size > 0 && (
+          <button
+            type="button"
+            onClick={onClear}
+            aria-label="Clear label status filter"
+            title="Clear"
+            className="ml-auto px-1 leading-none text-neutral-400 hover:text-neutral-700"
+          >
+            ✕
+          </button>
+        )}
+      </div>
       <div className="grid grid-cols-1 gap-1">
         {LABEL_STATUS_ORDER.map((s) => {
           const enabled = selected.has(s);

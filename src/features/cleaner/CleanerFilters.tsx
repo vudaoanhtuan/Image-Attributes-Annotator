@@ -1,66 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
-import {
-  labelStatus,
-  viewStatus,
-  type LabelStatus,
-  type ViewStatus,
-} from "@/lib/status";
+import { labelStatus, type LabelStatus } from "@/lib/status";
 import QueryInput from "@/shared/filters/ui/QueryInput";
-import {
-  LabelStatusButtons,
-  ViewStatusButtons,
-} from "@/shared/filters/ui/StatusFilterButtons";
-import {
-  EMPTY_FILTER_STATE,
-  type AttrFilter,
-  type FilterState,
-} from "@/shared/filters/types";
+import { LabelStatusButtons } from "@/shared/filters/ui/StatusFilterButtons";
+import NumberInput from "@/features/annotator/attributes/NumberInput";
 import type { AttributeSchema } from "@/types/label";
+import {
+  EMPTY_CLEANER_FILTER_STATE,
+  initialCleanerAttrFilter,
+  isCleanerAttrFilterActive,
+  type CleanerAttrFilter,
+  type CleanerFilterState,
+} from "./filter";
 
 type Draft = {
   query: string;
   labelStatuses: Set<LabelStatus>;
-  viewStatuses: Set<ViewStatus>;
-  attrs: Map<string, AttrFilter>;
+  attrs: Map<string, CleanerAttrFilter>;
 };
 
-function initialAttrFilter(attr: AttributeSchema): AttrFilter {
-  switch (attr.type) {
-    case "single":
-      return { kind: "single", key: attr.key, values: new Set(), includeUnset: false };
-    case "multi":
-      return {
-        kind: "multi",
-        key: attr.key,
-        values: new Set(),
-        mode: "any",
-        includeUnset: false,
-      };
-    case "number":
-      return { kind: "number", key: attr.key, includeUnset: false };
-    case "direction":
-      return { kind: "direction", key: attr.key, includeUnset: false };
-  }
-}
-
-function attrsToMap(arr: AttrFilter[]): Map<string, AttrFilter> {
-  const m = new Map<string, AttrFilter>();
+function attrsToMap(arr: CleanerAttrFilter[]): Map<string, CleanerAttrFilter> {
+  const m = new Map<string, CleanerAttrFilter>();
   for (const f of arr) m.set(f.key, f);
   return m;
 }
 
-function buildDraft(applied: FilterState, schema: AttributeSchema[]): Draft {
+function buildDraft(applied: CleanerFilterState, schema: AttributeSchema[]): Draft {
   const fromApplied = attrsToMap(applied.attrs);
-  const attrs = new Map<string, AttrFilter>();
+  const attrs = new Map<string, CleanerAttrFilter>();
   for (const a of schema) {
-    attrs.set(a.key, fromApplied.get(a.key) ?? initialAttrFilter(a));
+    attrs.set(a.key, fromApplied.get(a.key) ?? initialCleanerAttrFilter(a));
   }
   return {
     query: applied.query,
     labelStatuses: new Set(applied.labelStatuses),
-    viewStatuses: new Set(applied.viewStatuses),
     attrs,
   };
 }
@@ -69,7 +43,6 @@ export default function CleanerFilters() {
   const config = useDatasetStore((s) => s.config);
   const images = useDatasetStore((s) => s.images);
   const labels = useDatasetStore((s) => s.labels);
-  const viewedSet = useDatasetStore((s) => s.viewedSet);
   const applied = useCleanerStore((s) => s.filters);
   const setFilters = useCleanerStore((s) => s.setFilters);
 
@@ -80,17 +53,15 @@ export default function CleanerFilters() {
     setDraft(buildDraft(applied, schema));
   }, [applied, schema]);
 
-  const { labelCounts, viewCounts } = useMemo(() => {
+  const labelCounts = useMemo(() => {
     const lc: Record<LabelStatus, number> = { none: 0, incomplete: 0, complete: 0 };
-    const vc: Record<ViewStatus, number> = { unviewed: 0, viewed: 0 };
     for (const name of images) {
       lc[labelStatus(name, labels, config)]++;
-      vc[viewStatus(name, viewedSet)]++;
     }
-    return { labelCounts: lc, viewCounts: vc };
-  }, [images, labels, viewedSet, config]);
+    return lc;
+  }, [images, labels, config]);
 
-  const updateAttr = (key: string, next: AttrFilter) => {
+  const updateAttr = (key: string, next: CleanerAttrFilter) => {
     setDraft((d) => {
       const m = new Map(d.attrs);
       m.set(key, next);
@@ -99,7 +70,7 @@ export default function CleanerFilters() {
   };
 
   const apply = () => {
-    const attrs: AttrFilter[] = [];
+    const attrs: CleanerAttrFilter[] = [];
     for (const a of schema) {
       const f = draft.attrs.get(a.key);
       if (f) attrs.push(f);
@@ -107,14 +78,13 @@ export default function CleanerFilters() {
     setFilters({
       query: draft.query,
       labelStatuses: new Set(draft.labelStatuses),
-      viewStatuses: new Set(draft.viewStatuses),
       attrs,
     });
   };
 
   const reset = () => {
-    setDraft(buildDraft(EMPTY_FILTER_STATE, schema));
-    setFilters({ ...EMPTY_FILTER_STATE, attrs: [] });
+    setDraft(buildDraft(EMPTY_CLEANER_FILTER_STATE, schema));
+    setFilters({ ...EMPTY_CLEANER_FILTER_STATE, labelStatuses: new Set(), attrs: [] });
   };
 
   const toggleLabelStatus = (s: LabelStatus) =>
@@ -123,14 +93,6 @@ export default function CleanerFilters() {
       if (n.has(s)) n.delete(s);
       else n.add(s);
       return { ...d, labelStatuses: n };
-    });
-
-  const toggleViewStatus = (s: ViewStatus) =>
-    setDraft((d) => {
-      const n = new Set(d.viewStatuses);
-      if (n.has(s)) n.delete(s);
-      else n.add(s);
-      return { ...d, viewStatuses: n };
     });
 
   return (
@@ -147,12 +109,8 @@ export default function CleanerFilters() {
         <LabelStatusButtons
           selected={draft.labelStatuses}
           onToggle={toggleLabelStatus}
+          onClear={() => setDraft((d) => ({ ...d, labelStatuses: new Set() }))}
           counts={labelCounts}
-        />
-        <ViewStatusButtons
-          selected={draft.viewStatuses}
-          onToggle={toggleViewStatus}
-          counts={viewCounts}
         />
         {schema.length > 0 && (
           <div className="flex flex-col gap-3 pt-1 border-t border-neutral-200">
@@ -196,26 +154,36 @@ function AttrFilterRow({
   onChange,
 }: {
   attr: AttributeSchema;
-  filter: AttrFilter;
-  onChange: (f: AttrFilter) => void;
+  filter: CleanerAttrFilter;
+  onChange: (f: CleanerAttrFilter) => void;
 }) {
+  const active = isCleanerAttrFilterActive(filter);
   return (
     <div className="flex flex-col gap-1.5 pt-2">
-      <div className="text-base text-neutral-700 font-medium">{attr.label}</div>
+      <div className="flex items-center text-base text-neutral-700 font-medium">
+        <span>{attr.label}</span>
+        {active && (
+          <button
+            type="button"
+            onClick={() => onChange(initialCleanerAttrFilter(attr))}
+            aria-label={`Clear ${attr.label} filter`}
+            title="Clear"
+            className="ml-auto px-1 leading-none text-neutral-400 hover:text-neutral-700"
+          >
+            ✕
+          </button>
+        )}
+      </div>
       {attr.type === "single" && filter.kind === "single" && (
         <ValueChips
           options={attr.options.map((o) => ({ value: o.value, label: o.label }))}
           selected={filter.values}
-          includeUnset={filter.includeUnset}
           onToggleValue={(v) => {
             const n = new Set(filter.values);
             if (n.has(v)) n.delete(v);
             else n.add(v);
             onChange({ ...filter, values: n });
           }}
-          onToggleUnset={() =>
-            onChange({ ...filter, includeUnset: !filter.includeUnset })
-          }
         />
       )}
       {attr.type === "multi" && filter.kind === "multi" && (
@@ -223,16 +191,12 @@ function AttrFilterRow({
           <ValueChips
             options={attr.options.map((o) => ({ value: o.value, label: o.label }))}
             selected={filter.values}
-            includeUnset={filter.includeUnset}
             onToggleValue={(v) => {
               const n = new Set(filter.values);
               if (n.has(v)) n.delete(v);
               else n.add(v);
               onChange({ ...filter, values: n });
             }}
-            onToggleUnset={() =>
-              onChange({ ...filter, includeUnset: !filter.includeUnset })
-            }
           />
           <div className="flex items-center gap-1 text-sm">
             <span className="text-neutral-500">Match:</span>
@@ -254,23 +218,18 @@ function AttrFilterRow({
         </>
       )}
       {attr.type === "number" && filter.kind === "number" && (
-        <RangeRow
+        <NumberRangeRow
           min={filter.min}
           max={filter.max}
-          step={attr.step}
-          includeUnset={filter.includeUnset}
+          subtype={attr.subtype}
           onChange={(min, max) => onChange({ ...filter, min, max })}
-          onToggleUnset={() =>
-            onChange({ ...filter, includeUnset: !filter.includeUnset })
-          }
         />
       )}
       {attr.type === "direction" && filter.kind === "direction" && (
-        <RangeRow
+        <NumberRangeRow
           min={filter.minDeg}
           max={filter.maxDeg}
-          step={1}
-          unit="°"
+          subtype="int"
           hint={
             filter.minDeg !== undefined &&
             filter.maxDeg !== undefined &&
@@ -278,12 +237,8 @@ function AttrFilterRow({
               ? "wraps across 360°"
               : undefined
           }
-          includeUnset={filter.includeUnset}
           onChange={(min, max) =>
             onChange({ ...filter, minDeg: min, maxDeg: max })
-          }
-          onToggleUnset={() =>
-            onChange({ ...filter, includeUnset: !filter.includeUnset })
           }
         />
       )}
@@ -294,15 +249,11 @@ function AttrFilterRow({
 function ValueChips({
   options,
   selected,
-  includeUnset,
   onToggleValue,
-  onToggleUnset,
 }: {
   options: { value: string; label: string }[];
   selected: Set<string>;
-  includeUnset: boolean;
   onToggleValue: (v: string) => void;
-  onToggleUnset: () => void;
 }) {
   return (
     <div className="flex flex-wrap gap-1">
@@ -323,89 +274,45 @@ function ValueChips({
           </button>
         );
       })}
-      <button
-        type="button"
-        onClick={onToggleUnset}
-        title="Include images where this attribute is unset"
-        className={`px-2 py-0.5 rounded border text-sm italic ${
-          includeUnset
-            ? "bg-amber-100 border-amber-500 text-amber-900"
-            : "bg-white border-neutral-300 text-neutral-500 hover:bg-neutral-100"
-        }`}
-      >
-        (unset)
-      </button>
     </div>
   );
 }
 
-function RangeRow({
+function NumberRangeRow({
   min,
   max,
-  step,
-  unit,
+  subtype,
   hint,
-  includeUnset,
   onChange,
-  onToggleUnset,
 }: {
   min: number | undefined;
   max: number | undefined;
-  step?: number;
-  unit?: string;
+  subtype?: "int" | "float";
   hint?: string;
-  includeUnset: boolean;
   onChange: (min: number | undefined, max: number | undefined) => void;
-  onToggleUnset: () => void;
 }) {
-  const parse = (s: string): number | undefined => {
-    if (s.trim() === "") return undefined;
-    const n = Number(s);
-    return Number.isFinite(n) ? n : undefined;
-  };
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1 text-sm">
-        <input
-          type="number"
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          step={step}
-          value={min ?? ""}
-          onChange={(e) => onChange(parse(e.target.value), max)}
-          placeholder="min"
-          className="w-20 px-2 py-0.5 border border-neutral-300 rounded text-sm"
-        />
-        <span className="text-neutral-500">to</span>
-        <input
-          type="number"
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          step={step}
-          value={max ?? ""}
-          onChange={(e) => onChange(min, parse(e.target.value))}
-          placeholder="max"
-          className="w-20 px-2 py-0.5 border border-neutral-300 rounded text-sm"
-        />
-        {unit && <span className="text-neutral-500 text-sm">{unit}</span>}
-        <button
-          type="button"
-          onClick={onToggleUnset}
-          title="Include unset"
-          className={`ml-auto px-2 py-0.5 rounded border text-sm italic ${
-            includeUnset
-              ? "bg-amber-100 border-amber-500 text-amber-900"
-              : "bg-white border-neutral-300 text-neutral-500 hover:bg-neutral-100"
-          }`}
-        >
-          (unset)
-        </button>
+      <div className="flex items-end gap-2">
+        <div className="flex-1 min-w-0">
+          <NumberInput
+            label="Min"
+            value={min}
+            subtype={subtype}
+            onChange={(v) => onChange(v, max)}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <NumberInput
+            label="Max"
+            value={max}
+            subtype={subtype}
+            onChange={(v) => onChange(min, v)}
+          />
+        </div>
       </div>
       {hint && <div className="text-xs text-neutral-500">{hint}</div>}
     </div>
   );
 }
+
