@@ -14,6 +14,7 @@ import ImageAttributesTooltip from "./ImageAttributesTooltip";
 const CELL_W = 140;
 const CELL_H = 220;
 const GAP = 8;
+const SCROLLBAR_W = 16;
 
 export default function ImageGrid() {
   const path = useDatasetStore((s) => s.path)!;
@@ -55,7 +56,8 @@ export default function ImageGrid() {
     };
   }, []);
 
-  const colCount = Math.max(1, Math.floor((size.w + GAP) / (CELL_W + GAP)));
+  const innerW = Math.max(0, size.w - SCROLLBAR_W);
+  const colCount = Math.max(1, Math.floor((innerW + GAP) / (CELL_W + GAP)));
   const rowCount = Math.ceil(filteredIndices.length / colCount);
 
   const itemData = useMemo(
@@ -113,6 +115,7 @@ export default function ImageGrid() {
             rowHeight={CELL_H + GAP}
             width={size.w}
             height={size.h}
+            style={{ overflowX: "hidden" }}
             itemData={itemData}
           >
             {Cell}
