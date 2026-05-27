@@ -48,7 +48,7 @@ export default function CleanerWorkspace() {
         className="border-t border-neutral-200"
         storageKey="cleaner-layout"
       >
-        <WorkspaceLayout.LeftSideBar defaultSize={288}>
+        <WorkspaceLayout.LeftSideBar>
           <CleanerFilters />
         </WorkspaceLayout.LeftSideBar>
         <WorkspaceLayout.Main>

@@ -98,7 +98,7 @@ export default function ImageFilters() {
       <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Filters
       </div>
-      <div className="px-3 py-2 flex flex-col gap-2">
+      <div className="px-3 py-2 flex flex-col gap-3">
         <TextInput
           value={query}
           onChange={setQuery}
