@@ -1,8 +1,8 @@
 import { Menu, Submenu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
 import { pickAndOpenDataset } from "./openDataset";
 import { closeDataset } from "./closeDataset";
+import { switchViewMode } from "./switchViewMode";
 import { useLabelStore } from "@/store/labelStore";
-import { useDatasetStore } from "@/store/datasetStore";
 
 export async function installAppMenu() {
   const openItem = await MenuItem.new({
@@ -45,8 +45,7 @@ export async function installAppMenu() {
     text: "Annotate",
     accelerator: "CmdOrCtrl+1",
     action: () => {
-      if (!useDatasetStore.getState().path) return;
-      useDatasetStore.getState().setViewMode("annotator");
+      void switchViewMode("annotator");
     },
   });
 
@@ -55,8 +54,7 @@ export async function installAppMenu() {
     text: "Clean",
     accelerator: "CmdOrCtrl+2",
     action: () => {
-      if (!useDatasetStore.getState().path) return;
-      useDatasetStore.getState().setViewMode("cleaner");
+      void switchViewMode("cleaner");
     },
   });
 

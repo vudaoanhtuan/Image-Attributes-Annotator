@@ -30,12 +30,11 @@ export default function App() {
   useEffect(() => {
     const w = getCurrentWindow();
     const unlistenP = w.onCloseRequested(async (event) => {
-      const { dirty, flush } = useLabelStore.getState();
-      if (dirty) {
-        event.preventDefault();
-        await flush();
-        await w.destroy();
-      }
+      const { flush, boundImage } = useLabelStore.getState();
+      if (!boundImage) return;
+      event.preventDefault();
+      await flush();
+      await w.destroy();
     });
     return () => {
       unlistenP.then((un) => un()).catch(() => {});

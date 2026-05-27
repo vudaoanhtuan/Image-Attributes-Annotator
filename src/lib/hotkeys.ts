@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import { pickAndOpenDataset } from "./openDataset";
+import { switchViewMode } from "./switchViewMode";
 import { buildHotkeyMap } from "./attrHotkeys";
 function nextFilteredIndex(
   filtered: number[],
@@ -72,10 +73,10 @@ export function useViewModeHotkeys() {
       if (!useDatasetStore.getState().path) return;
       if (e.key === "1") {
         e.preventDefault();
-        useDatasetStore.getState().setViewMode("annotator");
+        void switchViewMode("annotator");
       } else if (e.key === "2") {
         e.preventDefault();
-        useDatasetStore.getState().setViewMode("cleaner");
+        void switchViewMode("cleaner");
       }
     };
     window.addEventListener("keydown", onKey);
