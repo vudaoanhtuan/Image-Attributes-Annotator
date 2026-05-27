@@ -1,3 +1,5 @@
+import { CloseIcon } from "@/shared/components/icons";
+
 export default function TextInput({
   label,
   value,
@@ -37,7 +39,7 @@ export default function TextInput({
           className="absolute inset-y-0 right-0 flex items-center justify-center w-8 text-neutral-400 hover:text-neutral-700"
           aria-label="Clear"
         >
-          ✕
+          <CloseIcon className="w-3.5 h-3.5" />
         </button>
       )}
     </div>

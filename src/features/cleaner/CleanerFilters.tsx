@@ -8,6 +8,7 @@ import NumberInput from "@/shared/components/inputs/NumberInput";
 import MultiSelectDropdown, {
   type MultiSelectOption,
 } from "@/shared/components/inputs/MultiSelectDropdown";
+import { CloseIcon } from "@/shared/components/icons";
 import type { AttributeSchema } from "@/types/label";
 import {
   EMPTY_CLEANER_FILTER_STATE,
@@ -202,9 +203,9 @@ function AttrFilterRow({
             onClick={() => onChange(initialCleanerAttrFilter(attr))}
             aria-label={`Clear ${attr.label} filter`}
             title="Clear"
-            className="ml-auto px-1 leading-none text-neutral-400 hover:text-neutral-700"
+            className="ml-auto inline-flex items-center justify-center px-1 text-neutral-400 hover:text-neutral-700"
           >
-            ✕
+            <CloseIcon className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

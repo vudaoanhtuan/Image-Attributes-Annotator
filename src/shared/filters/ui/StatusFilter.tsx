@@ -7,6 +7,7 @@ import {
   type LabelStatus,
   type ViewStatus,
 } from "@/lib/status";
+import { CloseIcon } from "@/shared/components/icons";
 
 function StatusFilter<T extends string>({
   title,
@@ -41,9 +42,9 @@ function StatusFilter<T extends string>({
               onClick={onClear}
               aria-label={clearAriaLabel ?? `Clear ${title ?? ""} filter`.trim()}
               title="Clear"
-              className="ml-auto px-1 leading-none text-neutral-400 hover:text-neutral-700"
+              className="ml-auto inline-flex items-center justify-center px-1 text-neutral-400 hover:text-neutral-700"
             >
-              ✕
+              <CloseIcon className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

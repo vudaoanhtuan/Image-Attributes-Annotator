@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { CloseIcon } from "@/shared/components/icons";
 
 const toPercent = (raw: number) => Number((raw * 100).toPrecision(12));
 const fromPercent = (pct: number) => Number((pct / 100).toPrecision(12));
@@ -132,7 +133,7 @@ export default function NumberInput({
             className="absolute inset-y-0 right-0 flex items-center justify-center w-8 text-neutral-400 hover:text-neutral-700"
             aria-label="Clear"
           >
-            ✕
+            <CloseIcon className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
