@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FixedSizeGrid, type GridChildComponentProps } from "react-window";
 import { imageUrl } from "@/lib/tauri";
+import HorizontalScroller from "@/shared/components/HorizontalScroller";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
 import {
@@ -67,7 +68,6 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
   }, [selectedSet, tags]);
 
   const [activeTab, setActiveTab] = useState<string>(() => tabKeys[0] ?? NO_TAG);
-  const [focusedName, setFocusedName] = useState<string | null>(null);
   type ConfirmTarget = "current" | "all";
   const [confirmingDelete, setConfirmingDelete] = useState<ConfirmTarget | null>(
     null,
@@ -104,13 +104,6 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
 
   const currentNames = groups.get(activeTab) ?? [];
 
-  // Reset focused image when tab changes or focused image leaves
-  useEffect(() => {
-    if (focusedName && !currentNames.includes(focusedName)) {
-      setFocusedName(null);
-    }
-  }, [currentNames, focusedName]);
-
   // Keyboard: Escape closes
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -126,15 +119,6 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, anyModalOpen]);
-
-  const onRemove = (name: string) => {
-    const idx = currentNames.indexOf(name);
-    removeImage(name);
-    if (focusedName === name) {
-      const next = currentNames[idx + 1] ?? currentNames[idx - 1] ?? null;
-      setFocusedName(next);
-    }
-  };
 
   const deleteTargetNames =
     confirmingDelete === "all" ? allNames : currentNames;
@@ -224,52 +208,49 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
             </button>
           </div>
         </div>
-        <div className="px-3 pt-2 border-b border-neutral-200 flex items-end gap-1 overflow-x-auto">
-          {tabKeys.map((k) => {
+        <div className="pt-2 border-b border-neutral-200 flex items-stretch">
+          <HorizontalScroller>
+            <div className="px-3 flex items-end gap-1 w-max whitespace-nowrap">
+              {tabKeys.map((k) => {
             const count = groups.get(k)?.length ?? 0;
             const active = k === activeTab;
             const isTag = k !== NO_TAG;
             const c = isTag ? tagColors(k) : null;
-            const style =
-              c && active
-                ? {
-                    backgroundColor: c.activeBg,
-                    borderColor: c.activeBorder,
-                    color: c.text,
-                  }
-                : c
-                  ? { backgroundColor: c.bg, borderColor: c.border, color: c.text }
-                  : undefined;
+            const squareStyle = c
+              ? { backgroundColor: c.badgeBg, color: c.badgeText }
+              : undefined;
             return (
               <button
                 key={k}
                 type="button"
                 onClick={() => setActiveTab(k)}
-                style={style}
-                className={`px-3 py-1.5 text-sm rounded-t border border-b-0 -mb-px ${
-                  c
-                    ? `${active ? "font-semibold" : "opacity-80 hover:opacity-100"}`
-                    : active
-                      ? "bg-white border-neutral-300 text-neutral-900 font-medium"
-                      : "bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200"
+                className={`flex items-center gap-2 pl-1.5 pr-2.5 py-1 text-sm rounded-t border border-b-0 -mb-px ${
+                  active
+                    ? "bg-neutral-300 border-neutral-400 text-neutral-900 font-medium"
+                    : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-100"
                 }`}
               >
-                {k === NO_TAG ? "No tag" : k.toUpperCase()}
-                <span className="ml-1.5 tabular-nums opacity-70">
-                  {count}
+                <span
+                  style={squareStyle}
+                  className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-semibold ${
+                    c ? "" : "bg-neutral-300 text-neutral-600"
+                  }`}
+                >
+                  {isTag ? k.toUpperCase() : "·"}
                 </span>
+                <span className="tabular-nums">{count}</span>
               </button>
             );
           })}
+            </div>
+          </HorizontalScroller>
         </div>
         <div className="flex-1 min-h-0 bg-neutral-50">
           {path && (
             <TabGrid
               names={currentNames}
               path={path}
-              focusedName={focusedName}
-              onFocus={setFocusedName}
-              onRemove={onRemove}
+              onRemove={removeImage}
             />
           )}
         </div>
@@ -357,22 +338,16 @@ type CellData = {
   colCount: number;
   names: string[];
   path: string;
-  focusedName: string | null;
-  onClick: (name: string) => void;
   onRemove: (name: string) => void;
 };
 
 function TabGrid({
   names,
   path,
-  focusedName,
-  onFocus,
   onRemove,
 }: {
   names: string[];
   path: string;
-  focusedName: string | null;
-  onFocus: (name: string) => void;
   onRemove: (name: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -393,15 +368,8 @@ function TabGrid({
   const rowCount = Math.ceil(names.length / colCount);
 
   const itemData = useMemo<CellData>(
-    () => ({
-      colCount,
-      names,
-      path,
-      focusedName,
-      onClick: onFocus,
-      onRemove,
-    }),
-    [colCount, names, path, focusedName, onFocus, onRemove],
+    () => ({ colCount, names, path, onRemove }),
+    [colCount, names, path, onRemove],
   );
 
   return (
@@ -436,23 +404,15 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
   const flatIndex = rowIndex * d.colCount + columnIndex;
   if (flatIndex >= d.names.length) return null;
   const name = d.names[flatIndex];
-  const focused = name === d.focusedName;
   return (
     <div style={style} className="p-1">
       <div
         onClick={(e) => {
-          if (e.altKey) {
-            e.preventDefault();
-            d.onRemove(name);
-          } else {
-            d.onClick(name);
-          }
+          if (!e.altKey) return;
+          e.preventDefault();
+          d.onRemove(name);
         }}
-        className={`relative w-full h-full flex flex-col rounded border-2 cursor-pointer overflow-hidden bg-white transition ${
-          focused
-            ? "border-sky-600 ring-2 ring-inset ring-sky-500"
-            : "border-neutral-300 hover:border-neutral-400"
-        }`}
+        className="relative w-full h-full flex flex-col rounded border-2 border-neutral-300 hover:border-neutral-400 cursor-default overflow-hidden bg-white transition"
       >
         <img
           src={imageUrl(d.path, name)}
