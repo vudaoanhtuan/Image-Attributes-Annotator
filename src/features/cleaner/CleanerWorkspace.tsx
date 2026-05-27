@@ -13,7 +13,8 @@ export default function CleanerWorkspace() {
   const filteredIndices = useCleanerStore((s) => s.filteredIndices);
   const selectedSet = useCleanerStore((s) => s.selectedSet);
   const selectAllFiltered = useCleanerStore((s) => s.selectAllFiltered);
-  const unselectAll = useCleanerStore((s) => s.unselectAll);
+  const deselectAllFiltered = useCleanerStore((s) => s.deselectAllFiltered);
+  const clearSelection = useCleanerStore((s) => s.clearSelection);
   const applyDelete = useCleanerStore((s) => s.applyDelete);
   const applyMove = useCleanerStore((s) => s.applyMove);
   const busy = useCleanerStore((s) => s.busy);
@@ -71,11 +72,20 @@ export default function CleanerWorkspace() {
               </button>
               <button
                 type="button"
-                onClick={unselectAll}
+                onClick={deselectAllFiltered}
                 disabled={noSelection}
                 className="px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Deselect all visible
+              </button>
+              <button
+                type="button"
+                onClick={clearSelection}
+                disabled={noSelection}
+                title="Clear all selected images, including those hidden by current filters"
+                className="px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Clear selection
               </button>
               <div className="flex-1" />
               <button

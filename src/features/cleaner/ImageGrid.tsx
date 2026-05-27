@@ -9,8 +9,8 @@ import {
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
 
-const CELL_W = 160;
-const CELL_H = 180;
+const CELL_W = 140;
+const CELL_H = 220;
 const GAP = 8;
 
 export default function ImageGrid() {
@@ -22,7 +22,7 @@ export default function ImageGrid() {
   const filteredIndices = useCleanerStore((s) => s.filteredIndices);
   const selectedSet = useCleanerStore((s) => s.selectedSet);
   const toggleSelected = useCleanerStore((s) => s.toggleSelected);
-  const unselectAll = useCleanerStore((s) => s.unselectAll);
+  const deselectAllFiltered = useCleanerStore((s) => s.deselectAllFiltered);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -70,7 +70,7 @@ export default function ImageGrid() {
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.preventDefault();
-      unselectAll();
+      deselectAllFiltered();
     }
   };
 
@@ -79,7 +79,7 @@ export default function ImageGrid() {
       ref={containerRef}
       tabIndex={0}
       onKeyDown={onKeyDown}
-      className="flex-1 min-h-0 min-w-0 outline-none focus:ring-1 focus:ring-sky-300 relative"
+      className="flex-1 min-h-0 min-w-0 outline-none relative"
     >
       {filteredIndices.length === 0 ? (
         <div className="h-full flex items-center justify-center text-neutral-500">
@@ -129,28 +129,41 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
       <div
         onClick={(e) => d.onClick(e, name, origIndex)}
         title={`${name} — ${LABEL_STATUS_LABEL[ls]}`}
-        className={`relative w-full h-full flex flex-col rounded border cursor-pointer overflow-hidden bg-white transition ${
+        className={`relative w-full h-full flex flex-col rounded border-2 cursor-pointer overflow-hidden bg-white transition ${
           selected
-            ? "border-sky-500 ring-2 ring-sky-300"
+            ? "border-sky-600 ring-2 ring-inset ring-sky-500"
             : "border-neutral-300 hover:border-neutral-400"
         }`}
       >
-        <div className="flex-1 min-h-0 bg-neutral-100 flex items-center justify-center">
-          <img
-            src={imageUrl(d.path, name)}
-            alt={name}
-            loading="lazy"
-            draggable={false}
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-        <div className="px-1.5 py-0.5 flex items-center gap-1 text-[11px] border-t border-neutral-200 text-neutral-700">
+        <img
+          src={imageUrl(d.path, name)}
+          alt={name}
+          loading="lazy"
+          draggable={false}
+          className="flex-1 min-h-0 w-full h-full object-contain bg-neutral-100 p-0.5"
+        />
+        <span
+          aria-label={LABEL_STATUS_LABEL[ls]}
+          className={`absolute top-1 left-1 inline-block w-2 h-2 rounded-full ${LABEL_STATUS_BG[ls]}`}
+        />
+        {selected && (
           <span
-            className={`inline-block w-2 h-2 rounded-full shrink-0 ${LABEL_STATUS_BG[ls]}`}
-            aria-label={LABEL_STATUS_LABEL[ls]}
-          />
-          <span className="truncate">{name}</span>
-        </div>
+            aria-hidden
+            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center shadow"
+          >
+            <svg
+              viewBox="0 0 16 16"
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3,8.5 7,12 13,4.5" />
+            </svg>
+          </span>
+        )}
       </div>
     </div>
   );

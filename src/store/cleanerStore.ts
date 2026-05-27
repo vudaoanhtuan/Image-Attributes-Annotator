@@ -32,7 +32,8 @@ type CleanerState = {
     opts: { range?: boolean },
   ) => void;
   selectAllFiltered: () => void;
-  unselectAll: () => void;
+  deselectAllFiltered: () => void;
+  clearSelection: () => void;
   applyDelete: () => Promise<DeleteReport | null>;
   applyMove: (destSubdir: string) => Promise<MoveReport | null>;
   dismissReport: () => void;
@@ -108,12 +109,16 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
     set({ selectedSet: next });
   },
 
-  unselectAll: () => {
+  deselectAllFiltered: () => {
     const { filteredIndices, selectedSet } = get();
     const images = useDatasetStore.getState().images;
     const next = new Set(selectedSet);
     for (const i of filteredIndices) next.delete(images[i]);
     set({ selectedSet: next });
+  },
+
+  clearSelection: () => {
+    set({ selectedSet: new Set(), lastClickedIndex: null });
   },
 
   applyDelete: async () => {
