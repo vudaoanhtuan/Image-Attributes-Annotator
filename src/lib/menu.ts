@@ -32,12 +32,16 @@ export async function installAppMenu() {
     },
   });
 
-  const sep = await PredefinedMenuItem.new({ item: "Separator" });
-  const quit = await PredefinedMenuItem.new({ item: "Quit" });
+  const appQuit = await PredefinedMenuItem.new({ item: "Quit" });
+
+  const appMenu = await Submenu.new({
+    text: "Image Attributes Annotator",
+    items: [appQuit],
+  });
 
   const fileMenu = await Submenu.new({
     text: "File",
-    items: [openItem, saveItem, closeItem, sep, quit],
+    items: [openItem, saveItem, closeItem],
   });
 
   const annotateItem = await MenuItem.new({
@@ -63,6 +67,19 @@ export async function installAppMenu() {
     items: [annotateItem, cleanItem],
   });
 
-  const menu = await Menu.new({ items: [fileMenu, viewMenu] });
+  const undo = await PredefinedMenuItem.new({ item: "Undo" });
+  const redo = await PredefinedMenuItem.new({ item: "Redo" });
+  const editSep = await PredefinedMenuItem.new({ item: "Separator" });
+  const cut = await PredefinedMenuItem.new({ item: "Cut" });
+  const copy = await PredefinedMenuItem.new({ item: "Copy" });
+  const paste = await PredefinedMenuItem.new({ item: "Paste" });
+  const selectAll = await PredefinedMenuItem.new({ item: "SelectAll" });
+
+  const editMenu = await Submenu.new({
+    text: "Edit",
+    items: [undo, redo, editSep, cut, copy, paste, selectAll],
+  });
+
+  const menu = await Menu.new({ items: [appMenu, fileMenu, editMenu, viewMenu] });
   await menu.setAsAppMenu();
 }
