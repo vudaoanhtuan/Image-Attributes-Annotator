@@ -4,6 +4,7 @@ import { useCleanerStore, type CleanerReport } from "@/store/cleanerStore";
 import { api } from "@/lib/tauri";
 import CleanerFilters from "./CleanerFilters";
 import ImageGrid from "./ImageGrid";
+import WorkspaceLayout from "@/shared/components/WorkspaceLayout";
 
 export default function CleanerView() {
   const path = useDatasetStore((s) => s.path);
@@ -42,58 +43,67 @@ export default function CleanerView() {
   const noSelection = selCount === 0;
 
   return (
-    <div className="h-full w-full flex flex-col border-t border-neutral-200">
-      <div className="flex-1 flex min-h-0">
-        <CleanerFilters />
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="px-3 py-2 flex items-center gap-2 border-b border-neutral-200 bg-white text-sm">
-            <div className="flex items-center gap-3 text-neutral-700 tabular-nums">
-              <Counter label="Total" value={images.length} />
-              <span className="text-neutral-400">·</span>
-              <Counter label="Filtered" value={filteredIndices.length} />
-              <span className="text-neutral-400">·</span>
-              <Counter label="Selected" value={selCount} />
+    <>
+      <WorkspaceLayout
+        className="border-t border-neutral-200"
+        storageKey="cleaner-layout"
+      >
+        <WorkspaceLayout.LeftSideBar defaultSize={288}>
+          <CleanerFilters />
+        </WorkspaceLayout.LeftSideBar>
+        <WorkspaceLayout.Main>
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="px-3 py-2 flex items-center gap-2 border-b border-neutral-200 bg-white text-sm">
+              <div className="flex items-center gap-3 text-neutral-700 tabular-nums">
+                <Counter label="Total" value={images.length} />
+                <span className="text-neutral-400">·</span>
+                <Counter label="Filtered" value={filteredIndices.length} />
+                <span className="text-neutral-400">·</span>
+                <Counter label="Selected" value={selCount} />
+              </div>
+              <button
+                type="button"
+                onClick={selectAllFiltered}
+                disabled={filteredIndices.length === 0}
+                className="ml-2 px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Select all visible
+              </button>
+              <button
+                type="button"
+                onClick={unselectAll}
+                disabled={noSelection}
+                className="px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Deselect all visible
+              </button>
+              <div className="flex-1" />
+              <button
+                type="button"
+                onClick={() => setMovingOpen(true)}
+                disabled={noSelection || busy}
+                className="px-3 py-1 text-sm rounded border bg-white border-neutral-400 text-neutral-800 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Move
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={noSelection || busy}
+                className="px-3 py-1 text-sm rounded border bg-red-600 border-red-700 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
+              >
+                {busy ? "Working…" : "Delete"}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={selectAllFiltered}
-              disabled={filteredIndices.length === 0}
-              className="ml-2 px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Select all visible
-            </button>
-            <button
-              type="button"
-              onClick={unselectAll}
-              disabled={noSelection}
-              className="px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Deselect all visible
-            </button>
-            <div className="flex-1" />
-            <button
-              type="button"
-              onClick={() => setMovingOpen(true)}
-              disabled={noSelection || busy}
-              className="px-3 py-1 text-sm rounded border bg-white border-neutral-400 text-neutral-800 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Move
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(true)}
-              disabled={noSelection || busy}
-              className="px-3 py-1 text-sm rounded border bg-red-600 border-red-700 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
-            >
-              {busy ? "Working…" : "Delete"}
-            </button>
+            <ImageGrid />
           </div>
-          <ImageGrid />
-        </div>
-      </div>
-      <div className="h-7 px-3 flex items-center text-xs border-t border-neutral-200 bg-neutral-100 text-neutral-600">
-        <span className="truncate" title={path ?? ""}>{path}</span>
-      </div>
+        </WorkspaceLayout.Main>
+        <WorkspaceLayout.StatusBar>
+          <div className="h-7 px-3 flex items-center text-xs border-t border-neutral-200 bg-neutral-100 text-neutral-600">
+            <span className="truncate" title={path ?? ""}>{path}</span>
+          </div>
+        </WorkspaceLayout.StatusBar>
+      </WorkspaceLayout>
       {confirmingDelete && (
         <DeleteConfirmModal
           count={selCount}
@@ -112,7 +122,7 @@ export default function CleanerView() {
       {lastReport && (
         <ReportSnackbar item={lastReport} onDismiss={dismissReport} />
       )}
-    </div>
+    </>
   );
 }
 

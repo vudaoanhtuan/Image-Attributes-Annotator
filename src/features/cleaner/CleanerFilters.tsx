@@ -96,7 +96,7 @@ export default function CleanerFilters() {
     });
 
   return (
-    <div className="w-72 border-r border-neutral-200 bg-white flex flex-col">
+    <div className="h-full w-full border-r border-neutral-200 bg-white flex flex-col">
       <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Filters
       </div>

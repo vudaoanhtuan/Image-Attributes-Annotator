@@ -18,7 +18,7 @@ export default function AttributePanel() {
   let slot = 0;
 
   return (
-    <div className="w-80 border-l border-neutral-200 bg-white flex flex-col overflow-hidden">
+    <div className="h-full w-full border-l border-neutral-200 bg-white flex flex-col overflow-hidden">
       <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Attributes
       </div>
