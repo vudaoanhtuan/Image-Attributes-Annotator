@@ -18,7 +18,7 @@ export type AttributeSchema =
       key: string;
       label: string;
       type: "number";
-      subtype?: "int" | "float";
+      subtype?: "int" | "float" | "percent";
       min?: number;
       max?: number;
       step?: number;

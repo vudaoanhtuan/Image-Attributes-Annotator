@@ -139,5 +139,10 @@ function formatAttrValue(attr: AttributeSchema, value: unknown): string {
   if (attr.type === "direction") {
     return typeof value === "number" ? `${value}°` : String(value);
   }
+  if (attr.type === "number" && attr.subtype === "percent") {
+    return typeof value === "number"
+      ? `${Number((value * 100).toPrecision(12))}%`
+      : String(value);
+  }
   return String(value);
 }

@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+const toPercent = (raw: number) => Number((raw * 100).toPrecision(12));
+const fromPercent = (pct: number) => Number((pct / 100).toPrecision(12));
+
 export default function NumberInput({
   label,
   value,
@@ -11,17 +14,21 @@ export default function NumberInput({
 }: {
   label?: string;
   value: number | undefined;
-  subtype?: "int" | "float";
+  subtype?: "int" | "float" | "percent";
   min?: number;
   max?: number;
   suffix?: string;
   onChange: (v: number | undefined) => void;
 }) {
   const isInt = subtype === "int";
-  const [text, setText] = useState<string>(value === undefined ? "" : String(value));
+  const isPercent = subtype === "percent";
+  const display = (v: number | undefined) =>
+    v === undefined ? "" : String(isPercent ? toPercent(v) : v);
+  const [text, setText] = useState<string>(display(value));
 
   useEffect(() => {
-    setText(value === undefined ? "" : String(value));
+    setText(display(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   const sanitize = (raw: string) => {
@@ -51,12 +58,15 @@ export default function NumberInput({
       onChange(undefined);
       return;
     }
-    onChange(parsed);
+    onChange(isPercent ? fromPercent(parsed) : parsed);
   };
 
+  // For percent, compare in percent units (min/max are in percent units).
+  const compareValue = isPercent && value !== undefined ? toPercent(value) : value;
   const outOfRange =
-    value !== undefined &&
-    ((min !== undefined && value < min) || (max !== undefined && value > max));
+    compareValue !== undefined &&
+    ((min !== undefined && compareValue < min) ||
+      (max !== undefined && compareValue > max));
   const badInt = value !== undefined && isInt && !Number.isInteger(value);
   const rangeText =
     min !== undefined && max !== undefined
@@ -66,9 +76,8 @@ export default function NumberInput({
         : max !== undefined
           ? `≤ ${max}`
           : "";
-  const placeholder = [isInt ? "int" : "float", rangeText]
-    .filter(Boolean)
-    .join(", ");
+  const kindText = isInt ? "int" : isPercent ? "percent" : "float";
+  const placeholder = [kindText, rangeText].filter(Boolean).join(", ");
 
   const invalid =
     (text !== "" && value === undefined) || outOfRange || badInt;
@@ -78,7 +87,9 @@ export default function NumberInput({
     onChange(undefined);
   };
 
-  const hasSuffix = suffix !== undefined && suffix !== "";
+  const effectiveSuffix =
+    suffix !== undefined ? suffix : isPercent ? "%" : undefined;
+  const hasSuffix = effectiveSuffix !== undefined && effectiveSuffix !== "";
   const showSuffix = hasSuffix && text !== "";
 
   return (
@@ -111,7 +122,7 @@ export default function NumberInput({
         />
         {showSuffix && (
           <span className="absolute inset-y-0 right-8 flex items-center pointer-events-none text-neutral-500 font-mono tabular-nums">
-            {suffix}
+            {effectiveSuffix}
           </span>
         )}
         {text !== "" && (

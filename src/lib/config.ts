@@ -47,7 +47,11 @@ function parseAttribute(raw: unknown): AttributeSchema | null {
   }
   if (type === "number") {
     const subtype =
-      raw.subtype === "int" || raw.subtype === "float" ? raw.subtype : undefined;
+      raw.subtype === "int" ||
+      raw.subtype === "float" ||
+      raw.subtype === "percent"
+        ? raw.subtype
+        : undefined;
     const min =
       typeof raw.min === "number" && Number.isFinite(raw.min) ? raw.min : undefined;
     const max =

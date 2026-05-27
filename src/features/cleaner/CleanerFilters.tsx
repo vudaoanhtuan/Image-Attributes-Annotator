@@ -289,7 +289,7 @@ function NumberRangeRow({
 }: {
   min: number | undefined;
   max: number | undefined;
-  subtype?: "int" | "float";
+  subtype?: "int" | "float" | "percent";
   hint?: string;
   onChange: (min: number | undefined, max: number | undefined) => void;
 }) {

@@ -23,8 +23,10 @@ export function labelStatus(
     } else if (attr.type === "number") {
       const v = label[attr.key];
       if (typeof v !== "number" || !Number.isFinite(v)) return "incomplete";
-      if (attr.min !== undefined && v < attr.min) return "incomplete";
-      if (attr.max !== undefined && v > attr.max) return "incomplete";
+      // For percent subtype, min/max are in percent units while v is raw.
+      const cmp = attr.subtype === "percent" ? v * 100 : v;
+      if (attr.min !== undefined && cmp < attr.min) return "incomplete";
+      if (attr.max !== undefined && cmp > attr.max) return "incomplete";
       if (attr.subtype === "int" && !Number.isInteger(v)) return "incomplete";
     }
   }
