@@ -77,7 +77,7 @@ export default function CleanerView() {
               disabled={noSelection || busy}
               className="px-3 py-1 text-sm rounded border bg-white border-neutral-400 text-neutral-800 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Move…
+              Move
             </button>
             <button
               type="button"

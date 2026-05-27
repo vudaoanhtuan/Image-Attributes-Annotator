@@ -1,10 +1,9 @@
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import { hotkeyFor, KEY_ROWS } from "@/lib/attrHotkeys";
-import SingleChoice from "./attributes/SingleChoice";
-import MultiChoice from "./attributes/MultiChoice";
-import DirectionDisplay from "./attributes/DirectionDisplay";
-import NumberInput from "./attributes/NumberInput";
+import SingleChoice from "@/shared/components/inputs/SingleChoice";
+import MultiChoice from "@/shared/components/inputs/MultiChoice";
+import NumberInput from "@/shared/components/inputs/NumberInput";
 
 export default function AttributePanel() {
   const config = useDatasetStore((s) => s.config);
@@ -28,11 +27,13 @@ export default function AttributePanel() {
         if (attr.type === "direction") {
           const v = draft[attr.key];
           return (
-            <DirectionDisplay
+            <NumberInput
               key={attr.key}
               label={attr.label}
               value={typeof v === "number" ? v : undefined}
-              onClear={() => setDirection(attr.key, undefined)}
+              subtype="float"
+              suffix="°"
+              onChange={(nv) => setDirection(attr.key, nv)}
             />
           );
         }

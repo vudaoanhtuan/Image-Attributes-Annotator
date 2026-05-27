@@ -6,7 +6,7 @@ import {
   type LabelStatus,
   type ViewStatus,
 } from "@/lib/status";
-import QueryInput from "@/shared/filters/ui/QueryInput";
+import TextInput from "@/shared/components/inputs/TextInput";
 import {
   LabelStatusButtons,
   ViewStatusButtons,
@@ -99,7 +99,13 @@ export default function ImageFilters() {
         Filters
       </div>
       <div className="px-3 py-2 flex flex-col gap-2">
-        <QueryInput value={query} onChange={setQuery} onSubmit={apply} />
+        <TextInput
+          value={query}
+          onChange={setQuery}
+          onSubmit={apply}
+          label="File name"
+          placeholder="Filter by filename"
+        />
         <LabelStatusButtons
           selected={labelStatuses}
           onToggle={toggleLabelStatus}

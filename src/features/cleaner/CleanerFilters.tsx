@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
 import { labelStatus, type LabelStatus } from "@/lib/status";
-import QueryInput from "@/shared/filters/ui/QueryInput";
+import TextInput from "@/shared/components/inputs/TextInput";
 import { LabelStatusButtons } from "@/shared/filters/ui/StatusFilterButtons";
-import NumberInput from "@/features/annotator/attributes/NumberInput";
+import NumberInput from "@/shared/components/inputs/NumberInput";
 import type { AttributeSchema } from "@/types/label";
 import {
   EMPTY_CLEANER_FILTER_STATE,
@@ -101,10 +101,12 @@ export default function CleanerFilters() {
         Filters
       </div>
       <div className="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-3">
-        <QueryInput
+        <TextInput
           value={draft.query}
           onChange={(v) => setDraft((d) => ({ ...d, query: v }))}
           onSubmit={apply}
+          label="File name"
+          placeholder="Filter by filename"
         />
         <LabelStatusButtons
           selected={draft.labelStatuses}

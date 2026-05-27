@@ -6,13 +6,15 @@ export default function NumberInput({
   subtype,
   min,
   max,
+  suffix,
   onChange,
 }: {
-  label: string;
+  label?: string;
   value: number | undefined;
   subtype?: "int" | "float";
   min?: number;
   max?: number;
+  suffix?: string;
   onChange: (v: number | undefined) => void;
 }) {
   const isInt = subtype === "int";
@@ -76,9 +78,14 @@ export default function NumberInput({
     onChange(undefined);
   };
 
+  const hasSuffix = suffix !== undefined && suffix !== "";
+  const showSuffix = hasSuffix && text !== "";
+
   return (
     <div className="space-y-2">
-      <div className="text-base font-medium text-neutral-700">{label}</div>
+      {label !== undefined && (
+        <div className="text-base font-medium text-neutral-700">{label}</div>
+      )}
       <div className="relative">
         <input
           type="text"
@@ -96,12 +103,17 @@ export default function NumberInput({
               e.currentTarget.blur();
             }
           }}
-          className={`w-full pl-3 pr-9 py-1.5 rounded-md text-base border bg-white focus:outline-none focus:ring-1 ${
+          className={`w-full pl-3 ${hasSuffix ? "pr-14" : "pr-9"} py-1.5 rounded-md text-base border bg-white font-mono tabular-nums focus:outline-none focus:ring-1 ${
             invalid
               ? "border-red-400 text-red-600 focus:ring-red-400 focus:border-red-500"
               : "border-neutral-300 text-neutral-700 focus:ring-sky-400 focus:border-sky-500"
           }`}
         />
+        {showSuffix && (
+          <span className="absolute inset-y-0 right-8 flex items-center pointer-events-none text-neutral-500 font-mono tabular-nums">
+            {suffix}
+          </span>
+        )}
         {text !== "" && (
           <button
             type="button"
