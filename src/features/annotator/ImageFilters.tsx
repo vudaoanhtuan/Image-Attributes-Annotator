@@ -94,7 +94,7 @@ export default function ImageFilters() {
   };
 
   return (
-    <div className="flex flex-col border-b border-neutral-200">
+    <div className="flex flex-col border-b border-r border-neutral-200 bg-white">
       <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Filters
       </div>

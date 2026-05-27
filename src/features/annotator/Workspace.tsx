@@ -3,6 +3,7 @@ import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import { useArrowHotkeys } from "@/lib/hotkeys";
 import ImageList from "./ImageList";
+import ImageFilters from "./ImageFilters";
 import ImageViewer from "./ImageViewer";
 import DirectionPicker from "./DirectionPicker";
 import AttributePanel from "./AttributePanel";
@@ -40,6 +41,7 @@ export default function Workspace({ version: _version }: { version: string }) {
   return (
     <WorkspaceLayout className="border-t border-neutral-200">
       <WorkspaceLayout.LeftSideBar>
+        <ImageFilters />
         <ImageList />
       </WorkspaceLayout.LeftSideBar>
       <WorkspaceLayout.Main>

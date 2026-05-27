@@ -7,8 +7,6 @@ import {
   LABEL_STATUS_LABEL,
   VIEW_STATUS_LABEL,
 } from "@/lib/status";
-import ImageFilters from "./ImageFilters";
-
 export default function ImageList() {
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);
@@ -25,8 +23,7 @@ export default function ImageList() {
   }, [currentIndex, filteredIndices]);
 
   return (
-    <div className="h-full w-full border-r border-neutral-200 bg-white flex flex-col">
-      <ImageFilters />
+    <div className="flex-1 min-h-0 w-full border-r border-neutral-200 bg-white flex flex-col">
       <div className="px-3 py-2 text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200">
         Images ({filteredIndices.length} / {images.length})
       </div>

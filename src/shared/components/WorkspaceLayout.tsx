@@ -168,7 +168,10 @@ function WorkspaceLayout({ children, className, storageKey = "workspace-layout" 
       <div className="flex-1 flex min-h-0">
         {slots.left && (
           <>
-            <div style={{ width: leftWidth }} className="shrink-0 h-full min-w-0">
+            <div
+              style={{ width: leftWidth }}
+              className="shrink-0 h-full min-w-0 flex flex-col"
+            >
               {slots.left.props.children}
             </div>
             <div className={HANDLE_V} onMouseDown={onDragLeft} />
@@ -180,7 +183,10 @@ function WorkspaceLayout({ children, className, storageKey = "workspace-layout" 
             {slots.right && (
               <>
                 <div className={HANDLE_V} onMouseDown={onDragRight} />
-                <div style={{ width: rightWidth }} className="shrink-0 h-full min-w-0">
+                <div
+                  style={{ width: rightWidth }}
+                  className="shrink-0 h-full min-w-0 flex flex-col"
+                >
                   {slots.right.props.children}
                 </div>
               </>
