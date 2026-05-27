@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FixedSizeGrid, type GridChildComponentProps } from "react-window";
 import { imageUrl } from "@/lib/tauri";
 import {
@@ -8,6 +8,8 @@ import {
 } from "@/lib/status";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
+import type { DatasetConfig, Label } from "@/types/label";
+import ImageAttributesTooltip from "./ImageAttributesTooltip";
 
 const CELL_W = 140;
 const CELL_H = 220;
@@ -26,6 +28,7 @@ export default function ImageGrid() {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
+  const [altHeld, setAltHeld] = useState(false);
 
   useLayoutEffect(() => {
     const el = containerRef.current;
@@ -37,6 +40,19 @@ export default function ImageGrid() {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => setAltHeld(e.altKey);
+    const onBlur = () => setAltHeld(false);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("keyup", onKey);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keyup", onKey);
+      window.removeEventListener("blur", onBlur);
+    };
   }, []);
 
   const colCount = Math.max(1, Math.floor((size.w + GAP) / (CELL_W + GAP)));
@@ -51,6 +67,7 @@ export default function ImageGrid() {
       config,
       selectedSet,
       path,
+      altHeld,
       onClick: (e: React.MouseEvent, name: string, idx: number) => {
         toggleSelected(name, idx, { range: e.shiftKey });
       },
@@ -63,6 +80,7 @@ export default function ImageGrid() {
       config,
       selectedSet,
       path,
+      altHeld,
       toggleSelected,
     ],
   );
@@ -105,17 +123,20 @@ export default function ImageGrid() {
   );
 }
 
+type CellData = {
+  colCount: number;
+  filteredIndices: number[];
+  images: string[];
+  labels: Map<string, Label>;
+  config: DatasetConfig | null;
+  selectedSet: Set<string>;
+  path: string;
+  altHeld: boolean;
+  onClick: (e: React.MouseEvent, name: string, idx: number) => void;
+};
+
 function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
-  const d = data as {
-    colCount: number;
-    filteredIndices: number[];
-    images: string[];
-    labels: Map<string, import("@/types/label").Label>;
-    config: import("@/types/label").DatasetConfig | null;
-    selectedSet: Set<string>;
-    path: string;
-    onClick: (e: React.MouseEvent, name: string, idx: number) => void;
-  };
+  const d = data as CellData;
 
   const flatIndex = rowIndex * d.colCount + columnIndex;
   if (flatIndex >= d.filteredIndices.length) return null;
@@ -126,45 +147,56 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
 
   return (
     <div style={style} className="p-1">
-      <div
-        onClick={(e) => d.onClick(e, name, origIndex)}
-        title={`${name} — ${LABEL_STATUS_LABEL[ls]}`}
-        className={`relative w-full h-full flex flex-col rounded border-2 cursor-pointer overflow-hidden bg-white transition ${
-          selected
-            ? "border-sky-600 ring-2 ring-inset ring-sky-500"
-            : "border-neutral-300 hover:border-neutral-400"
-        }`}
+      <ImageAttributesTooltip
+        name={name}
+        status={ls}
+        label={d.labels.get(name)}
+        config={d.config}
+        altHeld={d.altHeld}
       >
-        <img
-          src={imageUrl(d.path, name)}
-          alt={name}
-          loading="lazy"
-          draggable={false}
-          className="flex-1 min-h-0 w-full h-full object-contain bg-neutral-100 p-0.5"
-        />
-        <span
-          aria-label={LABEL_STATUS_LABEL[ls]}
-          className={`absolute top-1 left-1 inline-block w-2 h-2 rounded-full ${LABEL_STATUS_BG[ls]}`}
-        />
-        {selected && (
-          <span
-            aria-hidden
-            className="absolute top-1 right-1 w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center shadow"
+        {(setReference, referenceProps) => (
+          <div
+            ref={setReference}
+            {...referenceProps}
+            onClick={(e) => d.onClick(e, name, origIndex)}
+            className={`relative w-full h-full flex flex-col rounded border-2 cursor-pointer overflow-hidden bg-white transition ${
+              selected
+                ? "border-sky-600 ring-2 ring-inset ring-sky-500"
+                : "border-neutral-300 hover:border-neutral-400"
+            }`}
           >
-            <svg
-              viewBox="0 0 16 16"
-              className="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3,8.5 7,12 13,4.5" />
-            </svg>
-          </span>
+            <img
+              src={imageUrl(d.path, name)}
+              alt={name}
+              loading="lazy"
+              draggable={false}
+              className="flex-1 min-h-0 w-full h-full object-contain bg-neutral-100 p-0.5"
+            />
+            <span
+              aria-label={LABEL_STATUS_LABEL[ls]}
+              className={`absolute top-1 left-1 inline-block w-2 h-2 rounded-full ${LABEL_STATUS_BG[ls]}`}
+            />
+            {selected && (
+              <span
+                aria-hidden
+                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center shadow"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="3,8.5 7,12 13,4.5" />
+                </svg>
+              </span>
+            )}
+          </div>
         )}
-      </div>
+      </ImageAttributesTooltip>
     </div>
   );
 }
