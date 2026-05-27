@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CategorySelect,
   CATEGORY_UNSET,
@@ -8,6 +8,27 @@ import {
 import TagIcon from "../TagIcon";
 import { NO_TAG, NO_TAG_LABEL } from "../constants";
 import { BADGE_CLASS } from "./shared";
+import { api } from "@/lib/tauri";
+import { useDatasetStore } from "@/store/datasetStore";
+
+const TAG_SEPARATORS = new Set([".", "_", "-"]);
+
+function autoDetectDest(
+  tag: string,
+  namedCategories: string[],
+): CategoryValue {
+  if (tag === NO_TAG) return CATEGORY_UNSET;
+  const t = tag.toLowerCase();
+  let match: string | null = null;
+  for (const c of namedCategories) {
+    if (c.length < 2) continue;
+    if (c[0].toLowerCase() !== t) continue;
+    if (!TAG_SEPARATORS.has(c[1])) continue;
+    if (match !== null) return CATEGORY_UNSET;
+    match = c;
+  }
+  return match ?? CATEGORY_UNSET;
+}
 
 export type MoveByTagPlan = { tag: string; dest: string; names: string[] };
 
@@ -30,6 +51,38 @@ export function MoveByTagModal({
     }
     return init;
   });
+
+  const datasetPath = useDatasetStore((s) => s.path);
+
+  useEffect(() => {
+    if (!datasetPath) return;
+    let cancelled = false;
+    api
+      .listImageSubdirs(datasetPath)
+      .then((subdirs) => {
+        if (cancelled) return;
+        const namedCategories = subdirs.filter((s) => !s.includes("/"));
+        setRows((prev) => {
+          let changed = false;
+          const next: Record<string, RowState> = { ...prev };
+          for (const k of tabKeys) {
+            const r = next[k];
+            if (!r || isCategorySet(r.dest)) continue;
+            const auto = autoDetectDest(k, namedCategories);
+            if (isCategorySet(auto)) {
+              next[k] = { ...r, dest: auto };
+              changed = true;
+            }
+          }
+          return changed ? next : prev;
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datasetPath]);
 
   const plan = useMemo<MoveByTagPlan[]>(() => {
     const out: MoveByTagPlan[] = [];
