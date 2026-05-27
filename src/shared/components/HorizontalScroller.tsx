@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "./icons";
 
 const DEFAULT_STEP = 160;
 
@@ -53,17 +54,17 @@ export default function HorizontalScroller({
 
   return (
     <div className="flex-1 min-w-0 flex items-stretch relative">
-      <ArrowButton
-        direction="left"
-        visible={canLeft}
-        onClick={() => scrollBy(-scrollStep)}
-      />
       <div
         ref={scrollRef}
         className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden hide-scrollbar"
       >
         {children}
       </div>
+      <ArrowButton
+        direction="left"
+        visible={canLeft}
+        onClick={() => scrollBy(-scrollStep)}
+      />
       <ArrowButton
         direction="right"
         visible={canRight}
@@ -82,18 +83,22 @@ function ArrowButton({
   visible: boolean;
   onClick: () => void;
 }) {
-  const side = direction === "left" ? "border-r" : "border-l";
+  const sidePos = direction === "left" ? "left-0" : "right-0";
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={direction === "left" ? "Scroll left" : "Scroll right"}
       tabIndex={visible ? 0 : -1}
-      className={`shrink-0 w-7 flex items-center justify-center text-neutral-500 hover:bg-neutral-200 hover:text-neutral-800 ${side} border-neutral-200 transition-opacity ${
+      className={`absolute ${sidePos} top-0 bottom-0 w-7 flex items-center justify-center bg-white text-neutral-500 hover:bg-neutral-200 hover:text-neutral-800 transition-opacity ${
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      {direction === "left" ? "‹" : "›"}
+      {direction === "left" ? (
+        <ChevronLeftIcon className="w-4 h-4" />
+      ) : (
+        <ChevronRightIcon className="w-4 h-4" />
+      )}
     </button>
   );
 }

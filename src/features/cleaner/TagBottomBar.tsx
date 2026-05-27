@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useCleanerStore } from "@/store/cleanerStore";
 import HorizontalScroller from "@/shared/components/HorizontalScroller";
+import { CloseIcon } from "@/shared/components/icons";
 import { tagColors } from "./tagColor";
 
 export default function TagBottomBar() {
@@ -88,9 +89,9 @@ function TagChip({
         onClick={onRemove}
         aria-label={`Remove tag ${tag.toUpperCase()}`}
         title={`Untag all images in ${tag.toUpperCase()}`}
-        className="w-5 h-5 leading-none flex items-center justify-center rounded text-base text-neutral-500 hover:bg-neutral-200 hover:text-neutral-800"
+        className="w-5 h-5 flex items-center justify-center rounded text-neutral-500 hover:bg-neutral-200 hover:text-neutral-800"
       >
-        ×
+        <CloseIcon className="w-3 h-3" />
       </button>
     </span>
   );
