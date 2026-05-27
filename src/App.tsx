@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import Landing from "@/shared/components/Landing";
-import Workspace from "@/features/annotator/Workspace";
-import CleanerView from "@/features/cleaner/CleanerView";
+import AnnotatorWorkspace from "@/features/annotator/AnnotatorWorkspace";
+import CleanerWorkspace from "@/features/cleaner/CleanerWorkspace";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
 import {
@@ -44,8 +44,8 @@ export default function App() {
 
   if (!path) return <Landing version={version} />;
   return viewMode === "annotator" ? (
-    <Workspace version={version} />
+    <AnnotatorWorkspace />
   ) : (
-    <CleanerView />
+    <CleanerWorkspace />
   );
 }

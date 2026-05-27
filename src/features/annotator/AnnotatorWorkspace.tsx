@@ -10,7 +10,7 @@ import AttributePanel from "./AttributePanel";
 import StatusBar from "./StatusBar";
 import WorkspaceLayout from "@/shared/components/WorkspaceLayout";
 
-export default function Workspace({ version: _version }: { version: string }) {
+export default function AnnotatorWorkspace() {
   const path = useDatasetStore((s) => s.path)!;
   const images = useDatasetStore((s) => s.images);
   const currentIndex = useDatasetStore((s) => s.currentIndex);

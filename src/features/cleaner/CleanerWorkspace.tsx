@@ -6,7 +6,7 @@ import CleanerFilters from "./CleanerFilters";
 import ImageGrid from "./ImageGrid";
 import WorkspaceLayout from "@/shared/components/WorkspaceLayout";
 
-export default function CleanerView() {
+export default function CleanerWorkspace() {
   const path = useDatasetStore((s) => s.path);
   const images = useDatasetStore((s) => s.images);
 
