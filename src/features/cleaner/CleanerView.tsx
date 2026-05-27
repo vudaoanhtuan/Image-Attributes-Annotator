@@ -88,7 +88,6 @@ export default function CleanerView() {
               {busy ? "Working…" : "Delete"}
             </button>
           </div>
-          {lastReport && <ReportBanner item={lastReport} onDismiss={dismissReport} />}
           <ImageGrid />
         </div>
       </div>
@@ -109,6 +108,9 @@ export default function CleanerView() {
           onCancel={() => setMovingOpen(false)}
           onConfirm={onConfirmMove}
         />
+      )}
+      {lastReport && (
+        <ReportSnackbar item={lastReport} onDismiss={dismissReport} />
       )}
     </div>
   );
@@ -461,7 +463,7 @@ function MoveModal({
   );
 }
 
-function ReportBanner({
+function ReportSnackbar({
   item,
   onDismiss,
 }: {
@@ -469,41 +471,67 @@ function ReportBanner({
   onDismiss: () => void;
 }) {
   const failed = item.report.failed;
-  const movedCount =
-    item.kind === "delete" ? item.report.moved.length : item.report.moved.length;
+  const movedCount = item.report.moved.length;
   const hasFailures = failed.length > 0;
   const verb = item.kind === "delete" ? "Deleted" : "Moved";
+
+  const timerRef = useRef<number | null>(null);
+  const clearTimer = () => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  const startTimer = () => {
+    clearTimer();
+    timerRef.current = window.setTimeout(() => {
+      onDismiss();
+    }, 5000);
+  };
+
+  useEffect(() => {
+    startTimer();
+    return clearTimer;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item]);
+
   return (
     <div
-      className={`px-3 py-2 border-b text-sm flex items-start gap-3 ${
+      role="status"
+      onMouseEnter={clearTimer}
+      onMouseLeave={startTimer}
+      className={`fixed bottom-10 right-4 z-50 max-w-sm w-[22rem] rounded-lg shadow-lg border text-sm flex items-start gap-2 px-3 py-2 ${
         hasFailures
           ? "bg-amber-50 border-amber-200 text-amber-900"
           : "bg-emerald-50 border-emerald-200 text-emerald-900"
       }`}
     >
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="font-medium">
           {verb} {movedCount} · {failed.length} failed
         </div>
         {hasFailures && (
           <ul className="mt-1 text-xs list-disc list-inside">
             {failed.slice(0, 5).map((f) => (
-              <li key={f.image_name}>
+              <li key={f.image_name} className="truncate">
                 <span className="font-mono">{f.image_name}</span>: {f.reason}
               </li>
             ))}
-            {failed.length > 5 && (
-              <li>… and {failed.length - 5} more</li>
-            )}
+            {failed.length > 5 && <li>… and {failed.length - 5} more</li>}
           </ul>
         )}
       </div>
       <button
         type="button"
         onClick={onDismiss}
-        className="text-xs underline hover:no-underline"
+        aria-label="Dismiss"
+        className={`shrink-0 -mr-1 px-1 leading-none text-lg ${
+          hasFailures
+            ? "text-amber-700 hover:text-amber-900"
+            : "text-emerald-700 hover:text-emerald-900"
+        }`}
       >
-        Dismiss
+        ×
       </button>
     </div>
   );
