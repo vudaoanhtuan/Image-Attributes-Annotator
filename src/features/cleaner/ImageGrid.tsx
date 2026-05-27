@@ -24,8 +24,10 @@ export default function ImageGrid() {
 
   const filteredIndices = useCleanerStore((s) => s.filteredIndices);
   const selectedSet = useCleanerStore((s) => s.selectedSet);
+  const tags = useCleanerStore((s) => s.tags);
   const toggleSelected = useCleanerStore((s) => s.toggleSelected);
   const deselectAllFiltered = useCleanerStore((s) => s.deselectAllFiltered);
+  const assignTagToSelected = useCleanerStore((s) => s.assignTagToSelected);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -56,6 +58,25 @@ export default function ImageGrid() {
     };
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+      if (e.key.length !== 1) return;
+      const k = e.key.toLowerCase();
+      if (!/^[a-z0-9]$/.test(k)) return;
+      const state = useCleanerStore.getState();
+      if (state.tagDialogOpen) return;
+      if (state.selectedSet.size === 0) return;
+      e.preventDefault();
+      assignTagToSelected(k);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [assignTagToSelected]);
+
   const innerW = Math.max(0, size.w - SCROLLBAR_W);
   const colCount = Math.max(1, Math.floor((innerW + GAP) / (CELL_W + GAP)));
   const rowCount = Math.ceil(filteredIndices.length / colCount);
@@ -68,6 +89,7 @@ export default function ImageGrid() {
       labels,
       config,
       selectedSet,
+      tags,
       path,
       altHeld,
       onClick: (e: React.MouseEvent, name: string, idx: number) => {
@@ -81,6 +103,7 @@ export default function ImageGrid() {
       labels,
       config,
       selectedSet,
+      tags,
       path,
       altHeld,
       toggleSelected,
@@ -133,6 +156,7 @@ type CellData = {
   labels: Map<string, Label>;
   config: DatasetConfig | null;
   selectedSet: Set<string>;
+  tags: Map<string, string>;
   path: string;
   altHeld: boolean;
   onClick: (e: React.MouseEvent, name: string, idx: number) => void;
@@ -146,6 +170,7 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
   const origIndex = d.filteredIndices[flatIndex];
   const name = d.images[origIndex];
   const selected = d.selectedSet.has(name);
+  const tag = d.tags.get(name);
   const ls = labelStatus(name, d.labels, d.config);
 
   return (
@@ -195,6 +220,14 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
                 >
                   <polyline points="3,8.5 7,12 13,4.5" />
                 </svg>
+              </span>
+            )}
+            {tag && (
+              <span
+                aria-label={`tag ${tag}`}
+                className="absolute bottom-1 right-1 min-w-5 h-5 px-1 rounded bg-amber-500 text-white text-xs font-semibold flex items-center justify-center shadow uppercase"
+              >
+                {tag}
               </span>
             )}
           </div>

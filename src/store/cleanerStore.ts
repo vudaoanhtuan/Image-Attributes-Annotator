@@ -19,8 +19,10 @@ type CleanerState = {
   filters: CleanerFilterState;
   filteredIndices: number[];
   selectedSet: Set<string>;
+  tags: Map<string, string>;
   lastClickedIndex: number | null;
   busy: boolean;
+  tagDialogOpen: boolean;
   lastReport: CleanerReport | null;
 
   recompute: () => void;
@@ -34,8 +36,16 @@ type CleanerState = {
   selectAllFiltered: () => void;
   deselectAllFiltered: () => void;
   clearSelection: () => void;
-  applyDelete: () => Promise<DeleteReport | null>;
-  applyMove: (destSubdir: string) => Promise<MoveReport | null>;
+  assignTagToSelected: (tag: string) => void;
+  untagAll: () => void;
+  untagByTag: (tag: string) => void;
+  removeFromSelection: (name: string) => void;
+  applyDelete: (names?: string[]) => Promise<DeleteReport | null>;
+  applyMove: (
+    destSubdir: string,
+    names?: string[],
+  ) => Promise<MoveReport | null>;
+  setTagDialogOpen: (open: boolean) => void;
   dismissReport: () => void;
 };
 
@@ -53,8 +63,10 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
   filters: EMPTY_CLEANER_FILTER_STATE,
   filteredIndices: [],
   selectedSet: new Set(),
+  tags: new Map(),
   lastClickedIndex: null,
   busy: false,
+  tagDialogOpen: false,
   lastReport: null,
 
   recompute: () => {
@@ -66,6 +78,7 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
       filters: EMPTY_CLEANER_FILTER_STATE,
       filteredIndices: [],
       selectedSet: new Set(),
+      tags: new Map(),
       lastClickedIndex: null,
       busy: false,
       lastReport: null,
@@ -118,23 +131,75 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
   },
 
   clearSelection: () => {
-    set({ selectedSet: new Set(), lastClickedIndex: null });
+    set({ selectedSet: new Set(), tags: new Map(), lastClickedIndex: null });
   },
 
-  applyDelete: async () => {
-    const { selectedSet } = get();
+  assignTagToSelected: (tag) => {
+    const { selectedSet, tags } = get();
+    if (selectedSet.size === 0) return;
+    const nextTags = new Map(tags);
+    for (const name of selectedSet) nextTags.set(name, tag);
+    set({ tags: nextTags, selectedSet: new Set(), lastClickedIndex: null });
+  },
+
+  untagAll: () => {
+    if (get().tags.size === 0) return;
+    set({ tags: new Map() });
+  },
+
+  untagByTag: (tag) => {
+    const { tags } = get();
+    const next = new Map<string, string>();
+    let changed = false;
+    for (const [name, t] of tags.entries()) {
+      if (t === tag) {
+        changed = true;
+        continue;
+      }
+      next.set(name, t);
+    }
+    if (changed) set({ tags: next });
+  },
+
+  removeFromSelection: (name) => {
+    const { selectedSet, tags } = get();
+    const next = new Set(selectedSet);
+    next.delete(name);
+    const nextTags = new Map(tags);
+    nextTags.delete(name);
+    set({ selectedSet: next, tags: nextTags });
+  },
+
+  applyDelete: async (explicitNames) => {
+    const { selectedSet, tags } = get();
     const path = useDatasetStore.getState().path;
-    if (!path || selectedSet.size === 0) return null;
+    const names = explicitNames ?? Array.from(selectedSet);
+    if (!path || names.length === 0) return null;
     set({ busy: true });
     try {
-      const names = Array.from(selectedSet);
       const report = await api.deleteImages(path, names);
       useDatasetStore.getState().removeImages(report.moved);
-      set({
-        selectedSet: new Set(),
-        busy: false,
-        lastReport: { kind: "delete", report },
-      });
+      if (explicitNames) {
+        const nextSel = new Set(selectedSet);
+        const nextTags = new Map(tags);
+        for (const name of report.moved) {
+          nextSel.delete(name);
+          nextTags.delete(name);
+        }
+        set({
+          selectedSet: nextSel,
+          tags: nextTags,
+          busy: false,
+          lastReport: { kind: "delete", report },
+        });
+      } else {
+        set({
+          selectedSet: new Set(),
+          tags: new Map(),
+          busy: false,
+          lastReport: { kind: "delete", report },
+        });
+      }
       return report;
     } catch (e) {
       console.error("delete_images failed", e);
@@ -143,20 +208,36 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
     }
   },
 
-  applyMove: async (destSubdir) => {
-    const { selectedSet } = get();
+  applyMove: async (destSubdir, explicitNames) => {
+    const { selectedSet, tags } = get();
     const path = useDatasetStore.getState().path;
-    if (!path || selectedSet.size === 0) return null;
+    const names = explicitNames ?? Array.from(selectedSet);
+    if (!path || names.length === 0) return null;
     set({ busy: true });
     try {
-      const names = Array.from(selectedSet);
       const report = await api.moveImages(path, names, destSubdir);
       useDatasetStore.getState().renameImages(report.moved);
-      set({
-        selectedSet: new Set(),
-        busy: false,
-        lastReport: { kind: "move", report },
-      });
+      if (explicitNames) {
+        const nextSel = new Set(selectedSet);
+        const nextTags = new Map(tags);
+        for (const m of report.moved) {
+          nextSel.delete(m.from);
+          nextTags.delete(m.from);
+        }
+        set({
+          selectedSet: nextSel,
+          tags: nextTags,
+          busy: false,
+          lastReport: { kind: "move", report },
+        });
+      } else {
+        set({
+          selectedSet: new Set(),
+          tags: new Map(),
+          busy: false,
+          lastReport: { kind: "move", report },
+        });
+      }
       return report;
     } catch (e) {
       console.error("move_images failed", e);
@@ -164,6 +245,8 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
       throw e;
     }
   },
+
+  setTagDialogOpen: (open) => set({ tagDialogOpen: open }),
 
   dismissReport: () => set({ lastReport: null }),
 }));
