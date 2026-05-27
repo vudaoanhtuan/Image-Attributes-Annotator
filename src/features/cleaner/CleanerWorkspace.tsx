@@ -45,10 +45,7 @@ export default function CleanerWorkspace() {
 
   return (
     <>
-      <WorkspaceLayout
-        className="border-t border-neutral-200"
-        storageKey="cleaner-layout"
-      >
+      <WorkspaceLayout className="border-t border-neutral-200">
         <WorkspaceLayout.LeftSideBar>
           <CleanerFilters />
         </WorkspaceLayout.LeftSideBar>

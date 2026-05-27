@@ -231,7 +231,7 @@ function AttrFilterRow({
         <NumberRangeRow
           min={filter.minDeg}
           max={filter.maxDeg}
-          subtype="int"
+          subtype="float"
           hint={
             filter.minDeg !== undefined &&
             filter.maxDeg !== undefined &&
@@ -295,18 +295,17 @@ function NumberRangeRow({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-end gap-2">
+      <div className="flex items-center gap-2">
         <div className="flex-1 min-w-0">
           <NumberInput
-            label="Min"
             value={min}
             subtype={subtype}
             onChange={(v) => onChange(v, max)}
           />
         </div>
+        <div className="text-neutral-500">—</div>
         <div className="flex-1 min-w-0">
           <NumberInput
-            label="Max"
             value={max}
             subtype={subtype}
             onChange={(v) => onChange(min, v)}
