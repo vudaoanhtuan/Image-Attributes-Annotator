@@ -111,7 +111,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
     }
   }, [currentNames, focusedName]);
 
-  // Keyboard: Escape close, x deselect
+  // Keyboard: Escape closes
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
@@ -121,27 +121,20 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
         if (anyModalOpen) return;
         e.preventDefault();
         onClose();
-        return;
-      }
-      if (e.key === "x" || e.key === "X") {
-        if (!focusedName) return;
-        if (e.metaKey || e.ctrlKey || e.altKey) return;
-        e.preventDefault();
-        const idx = currentNames.indexOf(focusedName);
-        removeImage(focusedName);
-        const next = currentNames[idx + 1] ?? currentNames[idx - 1] ?? null;
-        setFocusedName(next);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [
-    focusedName,
-    currentNames,
-    removeImage,
-    onClose,
-    anyModalOpen,
-  ]);
+  }, [onClose, anyModalOpen]);
+
+  const onRemove = (name: string) => {
+    const idx = currentNames.indexOf(name);
+    removeImage(name);
+    if (focusedName === name) {
+      const next = currentNames[idx + 1] ?? currentNames[idx - 1] ?? null;
+      setFocusedName(next);
+    }
+  };
 
   const deleteTargetNames =
     confirmingDelete === "all" ? allNames : currentNames;
@@ -276,16 +269,17 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
               path={path}
               focusedName={focusedName}
               onFocus={setFocusedName}
+              onRemove={onRemove}
             />
           )}
         </div>
         <div className="px-5 py-3 border-t border-neutral-200 flex items-center justify-between gap-2 bg-white">
           <div className="text-xs text-neutral-500">
-            Click an image to focus it, then press{" "}
+            Hold{" "}
             <kbd className="px-1 py-0.5 border border-neutral-300 rounded bg-neutral-100 text-neutral-700">
-              x
+              Option/Alt
             </kbd>{" "}
-            to remove it from this view.
+            and click an image to remove it from this view.
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <button
@@ -365,6 +359,7 @@ type CellData = {
   path: string;
   focusedName: string | null;
   onClick: (name: string) => void;
+  onRemove: (name: string) => void;
 };
 
 function TabGrid({
@@ -372,11 +367,13 @@ function TabGrid({
   path,
   focusedName,
   onFocus,
+  onRemove,
 }: {
   names: string[];
   path: string;
   focusedName: string | null;
   onFocus: (name: string) => void;
+  onRemove: (name: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -402,8 +399,9 @@ function TabGrid({
       path,
       focusedName,
       onClick: onFocus,
+      onRemove,
     }),
-    [colCount, names, path, focusedName, onFocus],
+    [colCount, names, path, focusedName, onFocus, onRemove],
   );
 
   return (
@@ -442,7 +440,14 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
   return (
     <div style={style} className="p-1">
       <div
-        onClick={() => d.onClick(name)}
+        onClick={(e) => {
+          if (e.altKey) {
+            e.preventDefault();
+            d.onRemove(name);
+          } else {
+            d.onClick(name);
+          }
+        }}
         className={`relative w-full h-full flex flex-col rounded border-2 cursor-pointer overflow-hidden bg-white transition ${
           focused
             ? "border-sky-600 ring-2 ring-inset ring-sky-500"
