@@ -4,6 +4,7 @@ import { imageUrl } from "@/lib/tauri";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
 import { DeleteConfirmModal, MoveModal } from "./modals";
+import { tagColors } from "./tagColor";
 
 const CELL_W = 140;
 const CELL_H = 220;
@@ -155,19 +156,34 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
           {tabKeys.map((k) => {
             const count = groups.get(k)?.length ?? 0;
             const active = k === activeTab;
+            const isTag = k !== NO_TAG;
+            const c = isTag ? tagColors(k) : null;
+            const style =
+              c && active
+                ? {
+                    backgroundColor: c.activeBg,
+                    borderColor: c.activeBorder,
+                    color: c.text,
+                  }
+                : c
+                  ? { backgroundColor: c.bg, borderColor: c.border, color: c.text }
+                  : undefined;
             return (
               <button
                 key={k}
                 type="button"
                 onClick={() => setActiveTab(k)}
+                style={style}
                 className={`px-3 py-1.5 text-sm rounded-t border border-b-0 -mb-px ${
-                  active
-                    ? "bg-white border-neutral-300 text-neutral-900 font-medium"
-                    : "bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200"
+                  c
+                    ? `${active ? "font-semibold" : "opacity-80 hover:opacity-100"}`
+                    : active
+                      ? "bg-white border-neutral-300 text-neutral-900 font-medium"
+                      : "bg-neutral-100 border-neutral-200 text-neutral-600 hover:bg-neutral-200"
                 }`}
               >
                 {k === NO_TAG ? "No tag" : k.toUpperCase()}
-                <span className="ml-1.5 text-neutral-500 tabular-nums">
+                <span className="ml-1.5 tabular-nums opacity-70">
                   {count}
                 </span>
               </button>

@@ -73,9 +73,9 @@ export default function CleanerWorkspace() {
         </WorkspaceLayout.Main>
         {showBottom && (
           <WorkspaceLayout.BottomSideBar
-            defaultSize={36}
-            minSize={36}
-            maxSize={36}
+            defaultSize={52}
+            minSize={52}
+            maxSize={52}
           >
             <TagBottomBar onView={() => setViewOpen(true)} />
           </WorkspaceLayout.BottomSideBar>

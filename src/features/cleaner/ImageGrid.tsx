@@ -10,6 +10,7 @@ import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
 import type { DatasetConfig, Label } from "@/types/label";
 import ImageAttributesTooltip from "./ImageAttributesTooltip";
+import { tagColors } from "./tagColor";
 
 const CELL_W = 140;
 const CELL_H = 220;
@@ -222,14 +223,18 @@ function Cell({ columnIndex, rowIndex, style, data }: GridChildComponentProps) {
                 </svg>
               </span>
             )}
-            {tag && (
-              <span
-                aria-label={`tag ${tag}`}
-                className="absolute bottom-1 right-1 min-w-5 h-5 px-1 rounded bg-amber-500 text-white text-xs font-semibold flex items-center justify-center shadow uppercase"
-              >
-                {tag}
-              </span>
-            )}
+            {tag && (() => {
+              const c = tagColors(tag);
+              return (
+                <span
+                  aria-label={`tag ${tag}`}
+                  className="absolute bottom-1 right-1 min-w-5 h-5 px-1 rounded text-xs font-semibold flex items-center justify-center shadow uppercase"
+                  style={{ backgroundColor: c.badgeBg, color: c.badgeText }}
+                >
+                  {tag}
+                </span>
+              );
+            })()}
           </div>
         )}
       </ImageAttributesTooltip>
