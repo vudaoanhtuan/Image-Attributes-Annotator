@@ -45,6 +45,9 @@ type CleanerState = {
     destSubdir: string,
     names: string[],
   ) => Promise<MoveReport | null>;
+  applyMoveBatch: (
+    plan: { dest: string; names: string[] }[],
+  ) => Promise<MoveReport | null>;
   setTagDialogOpen: (open: boolean) => void;
   dismissReport: () => void;
 };
@@ -227,6 +230,49 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
       return report;
     } catch (e) {
       console.error("move_images failed", e);
+      set({ busy: false });
+      throw e;
+    }
+  },
+
+  applyMoveBatch: async (plan) => {
+    const path = useDatasetStore.getState().path;
+    const items = plan.filter((p) => p.names.length > 0);
+    if (!path || items.length === 0) return null;
+    set({ busy: true });
+    const aggregate: MoveReport = { moved: [], failed: [] };
+    try {
+      for (const { dest, names } of items) {
+        try {
+          const report = await api.moveImages(path, names, dest);
+          useDatasetStore.getState().renameImages(report.moved);
+          aggregate.moved.push(...report.moved);
+          aggregate.failed.push(...report.failed);
+        } catch (e) {
+          console.error("move_images failed", e);
+          for (const name of names) {
+            aggregate.failed.push({
+              image_name: name,
+              reason: e instanceof Error ? e.message : String(e),
+            });
+          }
+        }
+      }
+      const { selectedSet, tags } = get();
+      const nextSel = new Set(selectedSet);
+      const nextTags = new Map(tags);
+      for (const m of aggregate.moved) {
+        nextSel.delete(m.from);
+        nextTags.delete(m.from);
+      }
+      set({
+        selectedSet: nextSel,
+        tags: nextTags,
+        busy: false,
+        lastReport: { kind: "move", report: aggregate },
+      });
+      return aggregate;
+    } catch (e) {
       set({ busy: false });
       throw e;
     }

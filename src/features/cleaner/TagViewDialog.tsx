@@ -3,7 +3,14 @@ import { FixedSizeGrid, type GridChildComponentProps } from "react-window";
 import { imageUrl } from "@/lib/tauri";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useCleanerStore } from "@/store/cleanerStore";
-import { DeleteConfirmModal, MoveModal } from "./modals";
+import {
+  DeleteByTagModal,
+  DeleteConfirmModal,
+  MoveByTagModal,
+  MoveModal,
+  type DeleteByTagPlan,
+  type MoveByTagPlan,
+} from "./modals";
 import { tagColors } from "./tagColor";
 
 const CELL_W = 140;
@@ -20,6 +27,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
   const removeImage = useCleanerStore((s) => s.removeImage);
   const applyDelete = useCleanerStore((s) => s.applyDelete);
   const applyMove = useCleanerStore((s) => s.applyMove);
+  const applyMoveBatch = useCleanerStore((s) => s.applyMoveBatch);
   const busy = useCleanerStore((s) => s.busy);
   const setTagDialogOpen = useCleanerStore((s) => s.setTagDialogOpen);
 
@@ -60,8 +68,28 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
 
   const [activeTab, setActiveTab] = useState<string>(() => tabKeys[0] ?? NO_TAG);
   const [focusedName, setFocusedName] = useState<string | null>(null);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [movingOpen, setMovingOpen] = useState(false);
+  type ConfirmTarget = "current" | "all";
+  const [confirmingDelete, setConfirmingDelete] = useState<ConfirmTarget | null>(
+    null,
+  );
+  const [movingOpen, setMovingOpen] = useState<ConfirmTarget | null>(null);
+  const [movingByTag, setMovingByTag] = useState(false);
+  const [deletingByTag, setDeletingByTag] = useState(false);
+
+  const allNames = useMemo(() => {
+    const out: string[] = [];
+    for (const k of tabKeys) {
+      const arr = groups.get(k);
+      if (arr) out.push(...arr);
+    }
+    return out;
+  }, [groups, tabKeys]);
+
+  const anyModalOpen =
+    confirmingDelete !== null ||
+    movingOpen !== null ||
+    movingByTag ||
+    deletingByTag;
 
   // Keep activeTab valid as groups change
   useEffect(() => {
@@ -90,7 +118,7 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
       const tag = t?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
       if (e.key === "Escape") {
-        if (confirmingDelete || movingOpen) return;
+        if (anyModalOpen) return;
         e.preventDefault();
         onClose();
         return;
@@ -112,25 +140,50 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
     currentNames,
     removeImage,
     onClose,
-    confirmingDelete,
-    movingOpen,
+    anyModalOpen,
   ]);
+
+  const deleteTargetNames =
+    confirmingDelete === "all" ? allNames : currentNames;
+  const moveTargetNames = movingOpen === "all" ? allNames : currentNames;
 
   const onConfirmDelete = async () => {
     try {
-      await applyDelete(currentNames);
+      await applyDelete(deleteTargetNames);
     } finally {
-      setConfirmingDelete(false);
+      setConfirmingDelete(null);
     }
   };
 
   const onConfirmMove = async (destSubdir: string) => {
     try {
-      await applyMove(destSubdir, currentNames);
+      await applyMove(destSubdir, moveTargetNames);
     } finally {
-      setMovingOpen(false);
+      setMovingOpen(null);
     }
   };
+
+  const onConfirmMoveByTag = async (plan: MoveByTagPlan[]) => {
+    try {
+      await applyMoveBatch(
+        plan.map((p) => ({ dest: p.dest, names: p.names })),
+      );
+    } finally {
+      setMovingByTag(false);
+    }
+  };
+
+  const onConfirmDeleteByTag = async (plan: DeleteByTagPlan[]) => {
+    try {
+      const allTargets = plan.flatMap((p) => p.names);
+      if (allTargets.length > 0) await applyDelete(allTargets);
+    } finally {
+      setDeletingByTag(false);
+    }
+  };
+
+  const tagLabel =
+    activeTab === NO_TAG ? "no tag" : activeTab.toUpperCase();
 
   return (
     <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center">
@@ -138,19 +191,45 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
         style={{ width: "90vw", height: "90vh" }}
         className="bg-white rounded-lg shadow-xl border border-neutral-200 flex flex-col overflow-hidden"
       >
-        <div className="px-5 py-3 border-b border-neutral-200 flex items-center">
-          <h2 className="text-lg font-semibold text-neutral-900">
+        <div className="px-5 py-3 border-b border-neutral-200 flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-neutral-900 shrink-0">
             Images by tag
           </h2>
           <div className="flex-1" />
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="px-2 leading-none text-2xl text-neutral-500 hover:text-neutral-800"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <button
+              type="button"
+              onClick={() => setMovingOpen("all")}
+              disabled={allNames.length === 0 || busy}
+              className="px-3 py-1 text-sm rounded border bg-white border-neutral-400 text-neutral-800 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Move all ({allNames.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setMovingByTag(true)}
+              disabled={allNames.length === 0 || busy}
+              className="px-3 py-1 text-sm rounded border bg-white border-neutral-400 text-neutral-800 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Move by tag
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete("all")}
+              disabled={allNames.length === 0 || busy}
+              className="px-3 py-1 text-sm rounded border bg-red-600 border-red-700 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
+            >
+              {busy && confirmingDelete === null ? "Working…" : `Delete all (${allNames.length})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeletingByTag(true)}
+              disabled={allNames.length === 0 || busy}
+              className="px-3 py-1 text-sm rounded border bg-white border-red-400 text-red-700 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Delete by tag
+            </button>
+          </div>
         </div>
         <div className="px-3 pt-2 border-b border-neutral-200 flex items-end gap-1 overflow-x-auto">
           {tabKeys.map((k) => {
@@ -208,39 +287,72 @@ export default function TagViewDialog({ onClose }: { onClose: () => void }) {
             </kbd>{" "}
             to remove it from this view.
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <button
               type="button"
-              onClick={() => setMovingOpen(true)}
+              onClick={() => setMovingOpen("current")}
               disabled={currentNames.length === 0 || busy}
               className="px-3 py-1 text-sm rounded border bg-white border-neutral-400 text-neutral-800 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Move ({currentNames.length})
+              Move {tagLabel} ({currentNames.length})
             </button>
             <button
               type="button"
-              onClick={() => setConfirmingDelete(true)}
+              onClick={() => setConfirmingDelete("current")}
               disabled={currentNames.length === 0 || busy}
               className="px-3 py-1 text-sm rounded border bg-red-600 border-red-700 text-white hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed tabular-nums"
             >
-              {busy ? "Working…" : `Delete (${currentNames.length})`}
+              {busy ? "Working…" : `Delete ${tagLabel} (${currentNames.length})`}
+            </button>
+            <div className="w-px h-5 bg-neutral-300 mx-1" />
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100"
+            >
+              Close
             </button>
           </div>
         </div>
       </div>
-      {confirmingDelete && (
+      {confirmingDelete !== null && (
         <DeleteConfirmModal
-          count={currentNames.length}
-          onCancel={() => setConfirmingDelete(false)}
+          count={deleteTargetNames.length}
+          title={
+            confirmingDelete === "all"
+              ? "Delete all tagged & selected images?"
+              : `Delete images tagged ${tagLabel}?`
+          }
+          onCancel={() => setConfirmingDelete(null)}
           onConfirm={onConfirmDelete}
         />
       )}
-      {movingOpen && path && (
+      {movingOpen !== null && path && (
         <MoveModal
-          count={currentNames.length}
-          datasetPath={path}
-          onCancel={() => setMovingOpen(false)}
+          count={moveTargetNames.length}
+          title={
+            movingOpen === "all"
+              ? `Move ${moveTargetNames.length} image${moveTargetNames.length === 1 ? "" : "s"} (all tags)`
+              : `Move ${moveTargetNames.length} image${moveTargetNames.length === 1 ? "" : "s"} tagged ${tagLabel}`
+          }
+          onCancel={() => setMovingOpen(null)}
           onConfirm={onConfirmMove}
+        />
+      )}
+      {movingByTag && (
+        <MoveByTagModal
+          groups={groups}
+          tabKeys={tabKeys}
+          onCancel={() => setMovingByTag(false)}
+          onConfirm={onConfirmMoveByTag}
+        />
+      )}
+      {deletingByTag && (
+        <DeleteByTagModal
+          groups={groups}
+          tabKeys={tabKeys}
+          onCancel={() => setDeletingByTag(false)}
+          onConfirm={onConfirmDeleteByTag}
         />
       )}
     </div>
