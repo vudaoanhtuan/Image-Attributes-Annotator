@@ -7,6 +7,7 @@ import ImageViewer from "./ImageViewer";
 import DirectionPicker from "./DirectionPicker";
 import AttributePanel from "./AttributePanel";
 import StatusBar from "./StatusBar";
+import WorkspaceLayout from "@/shared/components/WorkspaceLayout";
 
 export default function Workspace({ version: _version }: { version: string }) {
   const path = useDatasetStore((s) => s.path)!;
@@ -37,9 +38,11 @@ export default function Workspace({ version: _version }: { version: string }) {
   const currentImage = images[currentIndex];
 
   return (
-    <div className="h-full w-full flex flex-col border-t border-neutral-200">
-      <div className="flex-1 flex min-h-0">
+    <WorkspaceLayout className="border-t border-neutral-200">
+      <WorkspaceLayout.LeftSideBar>
         <ImageList />
+      </WorkspaceLayout.LeftSideBar>
+      <WorkspaceLayout.Main>
         <div className="flex-1 flex items-center justify-center min-w-0 p-6">
           {currentImage ? (
             directionAttr && directionAttr.type === "direction" ? (
@@ -57,9 +60,13 @@ export default function Workspace({ version: _version }: { version: string }) {
             <div className="text-neutral-500">No images in dataset.</div>
           )}
         </div>
+      </WorkspaceLayout.Main>
+      <WorkspaceLayout.RightSideBar>
         <AttributePanel />
-      </div>
-      <StatusBar />
-    </div>
+      </WorkspaceLayout.RightSideBar>
+      <WorkspaceLayout.StatusBar>
+        <StatusBar />
+      </WorkspaceLayout.StatusBar>
+    </WorkspaceLayout>
   );
 }
