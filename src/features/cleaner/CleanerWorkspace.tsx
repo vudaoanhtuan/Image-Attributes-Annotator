@@ -17,6 +17,7 @@ export default function CleanerWorkspace() {
   const selectAllFiltered = useCleanerStore((s) => s.selectAllFiltered);
   const deselectAllFiltered = useCleanerStore((s) => s.deselectAllFiltered);
   const clearSelection = useCleanerStore((s) => s.clearSelection);
+  const untagAll = useCleanerStore((s) => s.untagAll);
   const lastReport = useCleanerStore((s) => s.lastReport);
   const dismissReport = useCleanerStore((s) => s.dismissReport);
 
@@ -67,17 +68,35 @@ export default function CleanerWorkspace() {
               >
                 Clear selection
               </button>
+              <div className="flex-1" />
+              <button
+                type="button"
+                onClick={untagAll}
+                disabled={tags.size === 0}
+                title="Remove tags from all images"
+                className="px-2 py-1 text-sm rounded border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Untag all
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewOpen(true)}
+                disabled={selCount === 0 && tags.size === 0}
+                className="px-3 py-1 text-sm rounded border bg-sky-600 border-sky-700 text-white hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                View tags
+              </button>
             </div>
             <ImageGrid />
           </div>
         </WorkspaceLayout.Main>
         {showBottom && (
           <WorkspaceLayout.BottomSideBar
-            defaultSize={52}
-            minSize={52}
-            maxSize={52}
+            defaultSize={36}
+            minSize={36}
+            maxSize={36}
           >
-            <TagBottomBar onView={() => setViewOpen(true)} />
+            <TagBottomBar />
           </WorkspaceLayout.BottomSideBar>
         )}
         <WorkspaceLayout.StatusBar>

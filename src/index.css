@@ -16,3 +16,11 @@ body { user-select: none; }
 .overflow-scroll {
   overscroll-behavior: contain;
 }
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
