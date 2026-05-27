@@ -7,7 +7,7 @@ import { LabelStatusFilter } from "@/shared/filters/ui/StatusFilter";
 import NumberInput from "@/shared/components/inputs/NumberInput";
 import MultiSelectDropdown, {
   type MultiSelectOption,
-} from "@/shared/components/inputs/MultiSelectDropdown";
+} from "@/shared/components/inputs/SelectDropdown";
 import { CloseIcon } from "@/shared/components/icons";
 import type { AttributeSchema } from "@/types/label";
 import {
