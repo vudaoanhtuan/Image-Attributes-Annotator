@@ -25,8 +25,8 @@ export const api = {
     invoke<DeleteReport>("delete_images", { path, imageNames }),
   moveImages: (path: string, imageNames: string[], destSubdir: string) =>
     invoke<MoveReport>("move_images", { path, imageNames, destSubdir }),
-  listImageSubdirs: (path: string) =>
-    invoke<string[]>("list_image_subdirs", { path }),
+  listImageCategories: (path: string) =>
+    invoke<string[]>("list_image_categories", { path }),
 };
 
 export function imageUrl(datasetPath: string, imageName: string): string {

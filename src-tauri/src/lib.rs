@@ -10,7 +10,7 @@ pub fn run() {
             commands::write_label,
             commands::delete_images,
             commands::move_images,
-            commands::list_image_subdirs,
+            commands::list_image_categories,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

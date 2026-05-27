@@ -21,8 +21,10 @@ type DatasetState = {
   filters: DatasetFilters;
   filteredIndices: number[];
   viewMode: ViewMode;
+  categories: string[];
   open: (path: string) => Promise<void>;
   close: () => void;
+  refreshCategories: () => Promise<void>;
   setIndex: (i: number) => void;
   markViewed: (imageName: string) => void;
   setLabel: (imageName: string, label: Label | null) => void;
@@ -45,6 +47,7 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
   filters: EMPTY_FILTERS,
   filteredIndices: [],
   viewMode: "annotator",
+  categories: [],
 
   open: async (path) => {
     const { images, labels, config } = await api.openDataset(path);
@@ -59,7 +62,9 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       filters: EMPTY_FILTERS,
       filteredIndices: images.map((_, i) => i),
       viewMode: "annotator",
+      categories: [],
     });
+    await get().refreshCategories();
   },
 
   close: () => {
@@ -74,7 +79,18 @@ export const useDatasetStore = create<DatasetState>((set, get) => ({
       filters: EMPTY_FILTERS,
       filteredIndices: [],
       viewMode: "annotator",
+      categories: [],
     });
+  },
+
+  refreshCategories: async () => {
+    const { path } = get();
+    if (!path) {
+      set({ categories: [] });
+      return;
+    }
+    const categories = await api.listImageCategories(path);
+    set({ categories });
   },
 
   setIndex: (i) => {

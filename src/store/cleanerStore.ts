@@ -228,6 +228,7 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
         busy: false,
         lastReport: { kind: "move", report },
       });
+      void useDatasetStore.getState().refreshCategories();
       return report;
     } catch (e) {
       console.error("move_images failed", e);
@@ -272,6 +273,7 @@ export const useCleanerStore = create<CleanerState>((set, get) => ({
         busy: false,
         lastReport: { kind: "move", report: aggregate },
       });
+      void useDatasetStore.getState().refreshCategories();
       return aggregate;
     } catch (e) {
       set({ busy: false });

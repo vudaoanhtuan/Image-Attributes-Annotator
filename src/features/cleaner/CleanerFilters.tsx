@@ -17,7 +17,7 @@ import {
   type CleanerAttrFilter,
   type CleanerFilterState,
 } from "./filter";
-import { collectCategories, UNCATEGORIZED } from "./category";
+import { UNCATEGORIZED } from "./category";
 
 type Draft = {
   query: string;
@@ -50,6 +50,7 @@ export default function CleanerFilters() {
   const config = useDatasetStore((s) => s.config);
   const images = useDatasetStore((s) => s.images);
   const labels = useDatasetStore((s) => s.labels);
+  const categories = useDatasetStore((s) => s.categories);
   const applied = useCleanerStore((s) => s.filters);
   const setFilters = useCleanerStore((s) => s.setFilters);
 
@@ -62,12 +63,12 @@ export default function CleanerFilters() {
 
   const categoryOptions = useMemo<MultiSelectOption<string>[]>(
     () =>
-      collectCategories(images).map((c) =>
+      categories.map((c) =>
         c === UNCATEGORIZED
           ? { value: c, label: "Uncategorized" }
           : { value: c, label: c },
       ),
-    [images],
+    [categories],
   );
 
   const labelCounts = useMemo(() => {

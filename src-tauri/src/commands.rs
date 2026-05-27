@@ -496,43 +496,29 @@ pub fn move_images(
     Ok(MoveReport { moved, failed })
 }
 
-fn collect_subdirs(
-    root: &Path,
-    dir: &Path,
-    out: &mut HashSet<String>,
-) -> Result<(), String> {
-    let entries = fs::read_dir(dir).map_err(|e| e.to_string())?;
-    for entry in entries.flatten() {
-        let p = entry.path();
-        if !p.is_dir() {
-            continue;
-        }
-        if let Some(name) = p.file_name().and_then(|s| s.to_str()) {
-            if name.starts_with('.') {
-                continue;
-            }
-        }
-        let rel = p.strip_prefix(root).map_err(|e| e.to_string())?;
-        let rel_str = rel
-            .components()
-            .map(|c| c.as_os_str().to_string_lossy())
-            .collect::<Vec<_>>()
-            .join("/");
-        out.insert(rel_str);
-        collect_subdirs(root, &p, out)?;
-    }
-    Ok(())
-}
-
 #[tauri::command]
-pub fn list_image_subdirs(path: String) -> Result<Vec<String>, String> {
+pub fn list_image_categories(path: String) -> Result<Vec<String>, String> {
     let images_root = images_dir(&path);
     if !images_root.is_dir() {
         return Ok(Vec::new());
     }
-    let mut set: HashSet<String> = HashSet::new();
-    collect_subdirs(&images_root, &images_root, &mut set)?;
-    let mut out: Vec<String> = set.into_iter().collect();
+    let mut out: Vec<String> = Vec::new();
+    for entry in fs::read_dir(&images_root)
+        .map_err(|e| e.to_string())?
+        .flatten()
+    {
+        let p = entry.path();
+        if !p.is_dir() {
+            continue;
+        }
+        let Some(name) = p.file_name().and_then(|s| s.to_str()) else {
+            continue;
+        };
+        if name.starts_with('.') {
+            continue;
+        }
+        out.push(name.to_string());
+    }
     out.sort();
     Ok(out)
 }

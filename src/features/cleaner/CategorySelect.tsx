@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDatasetStore } from "@/store/datasetStore";
-import { UNCATEGORIZED, collectCategories } from "./category";
+import { UNCATEGORIZED } from "./category";
 
 const UNCATEGORIZED_LABEL = "Uncategorized";
 const UNSET = "__unset__";
@@ -39,8 +39,7 @@ export function CategorySelect({
   placeholder?: string;
   size?: "sm" | "md";
 }) {
-  const images = useDatasetStore((s) => s.images);
-  const categories = useMemo(() => collectCategories(images), [images]);
+  const categories = useDatasetStore((s) => s.categories);
   const namedCategories = useMemo(
     () => categories.filter((c) => c !== UNCATEGORIZED),
     [categories],
