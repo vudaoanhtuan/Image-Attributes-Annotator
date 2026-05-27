@@ -19,7 +19,7 @@ fn images_dir(dataset: &str) -> PathBuf {
 }
 
 fn trash_dir(dataset: &str) -> PathBuf {
-    Path::new(dataset).join(".trash")
+    Path::new(dataset).join("trash")
 }
 
 fn db_path(dataset: &str) -> PathBuf {
