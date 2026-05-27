@@ -1,5 +1,6 @@
 import type { AttributeSchema, DatasetConfig, Label } from "@/types/label";
 import { labelStatus, type LabelStatus } from "@/lib/status";
+import { imageCategory } from "./category";
 
 export type CleanerAttrFilter =
   | { kind: "single"; key: string; values: Set<string> }
@@ -15,12 +16,14 @@ export type CleanerAttrFilter =
 export type CleanerFilterState = {
   query: string;
   labelStatuses: Set<LabelStatus>;
+  categories: Set<string>;
   attrs: CleanerAttrFilter[];
 };
 
 export const EMPTY_CLEANER_FILTER_STATE: CleanerFilterState = {
   query: "",
   labelStatuses: new Set(),
+  categories: new Set(),
   attrs: [],
 };
 
@@ -114,6 +117,12 @@ export function buildCleanerPredicate(
   const q = state.query.trim().toLowerCase();
   return (name) => {
     if (q && !name.toLowerCase().includes(q)) return false;
+    if (
+      state.categories.size > 0 &&
+      !state.categories.has(imageCategory(name))
+    ) {
+      return false;
+    }
     if (
       state.labelStatuses.size > 0 &&
       !state.labelStatuses.has(labelStatus(name, labels, config))

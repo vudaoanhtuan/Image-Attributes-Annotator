@@ -5,6 +5,9 @@ import { labelStatus, type LabelStatus } from "@/lib/status";
 import TextInput from "@/shared/components/inputs/TextInput";
 import { LabelStatusFilter } from "@/shared/filters/ui/StatusFilter";
 import NumberInput from "@/shared/components/inputs/NumberInput";
+import MultiSelectDropdown, {
+  type MultiSelectOption,
+} from "@/shared/components/inputs/MultiSelectDropdown";
 import type { AttributeSchema } from "@/types/label";
 import {
   EMPTY_CLEANER_FILTER_STATE,
@@ -13,10 +16,12 @@ import {
   type CleanerAttrFilter,
   type CleanerFilterState,
 } from "./filter";
+import { collectCategories, UNCATEGORIZED } from "./category";
 
 type Draft = {
   query: string;
   labelStatuses: Set<LabelStatus>;
+  categories: Set<string>;
   attrs: Map<string, CleanerAttrFilter>;
 };
 
@@ -35,6 +40,7 @@ function buildDraft(applied: CleanerFilterState, schema: AttributeSchema[]): Dra
   return {
     query: applied.query,
     labelStatuses: new Set(applied.labelStatuses),
+    categories: new Set(applied.categories),
     attrs,
   };
 }
@@ -52,6 +58,16 @@ export default function CleanerFilters() {
   useEffect(() => {
     setDraft(buildDraft(applied, schema));
   }, [applied, schema]);
+
+  const categoryOptions = useMemo<MultiSelectOption<string>[]>(
+    () =>
+      collectCategories(images).map((c) =>
+        c === UNCATEGORIZED
+          ? { value: c, label: "Uncategorized" }
+          : { value: c, label: c },
+      ),
+    [images],
+  );
 
   const labelCounts = useMemo(() => {
     const lc: Record<LabelStatus, number> = { none: 0, incomplete: 0, complete: 0 };
@@ -78,13 +94,19 @@ export default function CleanerFilters() {
     setFilters({
       query: draft.query,
       labelStatuses: new Set(draft.labelStatuses),
+      categories: new Set(draft.categories),
       attrs,
     });
   };
 
   const reset = () => {
     setDraft(buildDraft(EMPTY_CLEANER_FILTER_STATE, schema));
-    setFilters({ ...EMPTY_CLEANER_FILTER_STATE, labelStatuses: new Set(), attrs: [] });
+    setFilters({
+      ...EMPTY_CLEANER_FILTER_STATE,
+      labelStatuses: new Set(),
+      categories: new Set(),
+      attrs: [],
+    });
   };
 
   const toggleLabelStatus = (s: LabelStatus) =>
@@ -108,6 +130,16 @@ export default function CleanerFilters() {
           label="File name"
           placeholder="Filter by filename"
         />
+        {categoryOptions.length > 0 && (
+          <MultiSelectDropdown
+            label="Category"
+            options={categoryOptions}
+            selected={draft.categories}
+            onChange={(next) => setDraft((d) => ({ ...d, categories: next }))}
+            placeholder="All categories"
+            searchPlaceholder="Search categories…"
+          />
+        )}
         <LabelStatusFilter
           selected={draft.labelStatuses}
           onToggle={toggleLabelStatus}
