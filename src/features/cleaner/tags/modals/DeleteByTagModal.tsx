@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import TagIcon from "../TagIcon";
 import { NO_TAG, NO_TAG_LABEL } from "../constants";
 import { BADGE_CLASS } from "./shared";
+import Checkbox from "@/shared/components/inputs/Checkbox";
 
 export type DeleteByTagPlan = { tag: string; names: string[] };
 
@@ -99,19 +100,13 @@ export function DeleteByTagModal({
                       : "bg-neutral-50 border-neutral-200 opacity-60"
                   }`}
                 >
-                  <label className="flex items-center cursor-pointer shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={isOn}
-                      onChange={(e) =>
-                        setChecked((prev) => ({
-                          ...prev,
-                          [k]: e.target.checked,
-                        }))
-                      }
-                      className="w-4 h-4 accent-red-600 cursor-pointer"
-                    />
-                  </label>
+                  <Checkbox
+                    tone="red"
+                    checked={isOn}
+                    onChange={(next) =>
+                      setChecked((prev) => ({ ...prev, [k]: next }))
+                    }
+                  />
 
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     {isTag ? (

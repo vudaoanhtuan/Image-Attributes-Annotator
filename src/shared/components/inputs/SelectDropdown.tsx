@@ -137,6 +137,10 @@ function SearchInput({
     <input
       type="text"
       autoFocus
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck={false}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}

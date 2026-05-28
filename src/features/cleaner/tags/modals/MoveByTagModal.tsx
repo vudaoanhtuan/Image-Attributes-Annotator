@@ -10,6 +10,7 @@ import { NO_TAG, NO_TAG_LABEL } from "../constants";
 import { BADGE_CLASS } from "./shared";
 import { useDatasetStore } from "@/store/datasetStore";
 import { UNCATEGORIZED } from "../../category";
+import Checkbox from "@/shared/components/inputs/Checkbox";
 
 const TAG_SEPARATORS = new Set([".", "_", "-"]);
 
@@ -142,19 +143,15 @@ export function MoveByTagModal({
                       : "bg-neutral-50 border-neutral-200 opacity-60"
                   }`}
                 >
-                  <label className="flex items-center cursor-pointer shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={r.checked}
-                      onChange={(e) =>
-                        setRows((prev) => ({
-                          ...prev,
-                          [k]: { ...prev[k], checked: e.target.checked },
-                        }))
-                      }
-                      className="w-4 h-4 accent-sky-600 cursor-pointer"
-                    />
-                  </label>
+                  <Checkbox
+                    checked={r.checked}
+                    onChange={(next) =>
+                      setRows((prev) => ({
+                        ...prev,
+                        [k]: { ...prev[k], checked: next },
+                      }))
+                    }
+                  />
 
                   <div className="flex items-center gap-2 shrink-0 w-40">
                     {isTag ? (

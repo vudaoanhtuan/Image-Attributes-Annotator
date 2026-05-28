@@ -1,4 +1,5 @@
 import type { AttributeOption } from "@/types/label";
+import Checkbox from "./Checkbox";
 
 export default function MultiChoice({
   label,
@@ -34,27 +35,7 @@ export default function MultiChoice({
               }`}
               aria-pressed={selected}
             >
-              <span
-                className={`inline-flex items-center justify-center w-4 h-4 rounded border-2 shrink-0 ${
-                  selected
-                    ? "border-emerald-600 bg-emerald-600 text-white"
-                    : "border-neutral-400 bg-white"
-                }`}
-              >
-                {selected && (
-                  <svg
-                    viewBox="0 0 16 16"
-                    className="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 8l3.5 3.5L13 5" />
-                  </svg>
-                )}
-              </span>
+              <Checkbox asIndicator checked={selected} tone="emerald" />
               <span className="flex-1">{opt.label}</span>
               {key && (
                 <kbd className="ml-auto inline-flex items-center justify-center w-5 h-5 rounded border border-neutral-300 bg-neutral-50 text-sm font-mono text-neutral-600">
