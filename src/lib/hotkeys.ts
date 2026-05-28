@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
+import { useUiStore } from "@/store/uiStore";
 import { pickAndOpenDataset } from "./openDataset";
 import { switchViewMode } from "./switchViewMode";
 import { buildHotkeyMap } from "./attrHotkeys";
@@ -78,6 +79,21 @@ export function useViewModeHotkeys() {
         e.preventDefault();
         void switchViewMode("cleaner");
       }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+}
+
+export function useToggleLeftSidebarHotkey() {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      if (e.key.toLowerCase() !== "l") return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      e.preventDefault();
+      useUiStore.getState().toggleLeftSidebar();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

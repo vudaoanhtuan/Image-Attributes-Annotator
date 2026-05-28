@@ -1,8 +1,10 @@
 import { Menu, Submenu, MenuItem, PredefinedMenuItem } from "@tauri-apps/api/menu";
+import { CheckMenuItem } from "@tauri-apps/api/menu/checkMenuItem";
 import { pickAndOpenDataset } from "./openDataset";
 import { closeDataset } from "./closeDataset";
 import { switchViewMode } from "./switchViewMode";
 import { useLabelStore } from "@/store/labelStore";
+import { useUiStore } from "@/store/uiStore";
 
 export async function installAppMenu() {
   const openItem = await MenuItem.new({
@@ -62,9 +64,27 @@ export async function installAppMenu() {
     },
   });
 
+  const viewSep = await PredefinedMenuItem.new({ item: "Separator" });
+
+  const toggleLeftSidebarItem = await CheckMenuItem.new({
+    id: "view-toggle-left-sidebar",
+    text: "Show Left Sidebar",
+    accelerator: "CmdOrCtrl+L",
+    checked: useUiStore.getState().leftSidebarVisible,
+    action: () => {
+      useUiStore.getState().toggleLeftSidebar();
+    },
+  });
+
+  useUiStore.subscribe((state, prev) => {
+    if (state.leftSidebarVisible !== prev.leftSidebarVisible) {
+      void toggleLeftSidebarItem.setChecked(state.leftSidebarVisible);
+    }
+  });
+
   const viewMenu = await Submenu.new({
     text: "View",
-    items: [annotateItem, cleanItem],
+    items: [annotateItem, cleanItem, viewSep, toggleLeftSidebarItem],
   });
 
   const undo = await PredefinedMenuItem.new({ item: "Undo" });

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDatasetStore } from "@/store/datasetStore";
 import { useLabelStore } from "@/store/labelStore";
+import { useUiStore } from "@/store/uiStore";
 import { useArrowHotkeys } from "@/lib/hotkeys";
 import ImageList from "./ImageList";
 import ImageFilters from "./ImageFilters";
@@ -18,6 +19,7 @@ export default function AnnotatorWorkspace() {
   const directionAttr = config?.attributes.find((a) => a.type === "direction");
   const loadFor = useLabelStore((s) => s.loadFor);
   const flush = useLabelStore((s) => s.flush);
+  const leftSidebarVisible = useUiStore((s) => s.leftSidebarVisible);
 
   useArrowHotkeys();
 
@@ -40,10 +42,12 @@ export default function AnnotatorWorkspace() {
 
   return (
     <WorkspaceLayout className="border-t border-neutral-200">
-      <WorkspaceLayout.LeftSideBar>
-        <ImageFilters />
-        <ImageList />
-      </WorkspaceLayout.LeftSideBar>
+      {leftSidebarVisible && (
+        <WorkspaceLayout.LeftSideBar>
+          <ImageFilters />
+          <ImageList />
+        </WorkspaceLayout.LeftSideBar>
+      )}
       <WorkspaceLayout.Main>
         <div className="flex-1 flex items-center justify-center min-w-0 p-6">
           {currentImage ? (

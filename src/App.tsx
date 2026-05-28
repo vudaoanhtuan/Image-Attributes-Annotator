@@ -10,6 +10,7 @@ import {
   useOpenDatasetHotkey,
   useAttributeHotkeys,
   useViewModeHotkeys,
+  useToggleLeftSidebarHotkey,
 } from "@/lib/hotkeys";
 import { installAppMenu } from "@/lib/menu";
 
@@ -21,6 +22,7 @@ export default function App() {
   useOpenDatasetHotkey();
   useAttributeHotkeys();
   useViewModeHotkeys();
+  useToggleLeftSidebarHotkey();
 
   useEffect(() => {
     getVersion().then(setVersion).catch(() => setVersion("dev"));
